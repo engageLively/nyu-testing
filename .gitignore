@@ -1,3 +1,4 @@
 # Ignore Jupyter Notebook checkpoints
 **/.ipynb_checkpoints/
-
+# Ignore tarballs
+*.tar.gz
