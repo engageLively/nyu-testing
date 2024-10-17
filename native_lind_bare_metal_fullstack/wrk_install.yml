@@ -1,0 +1,31 @@
+- hosts: all
+  strategy: free
+  become: true
+  tasks:
+    - name: Ensure required packages for building wrk are installed
+      apt:
+        name: 
+          - build-essential
+          - libssl-dev
+          - git
+        state: present
+        update_cache: yes
+
+    - name: Clone the wrk repository
+      git:
+        repo: https://github.com/wg/wrk.git
+        dest: /tmp/wrk
+        version: master
+
+    - name: Build wrk from source
+      command: make
+      args:
+        chdir: /tmp/wrk
+
+    - name: Move wrk to /usr/local/bin
+      command: mv /tmp/wrk/wrk /usr/local/bin/wrk
+
+    - name: Clean up the wrk source files
+      file:
+        path: /tmp/wrk
+        state: absent
