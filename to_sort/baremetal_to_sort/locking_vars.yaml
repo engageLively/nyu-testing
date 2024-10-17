@@ -1,0 +1,7 @@
+locking_vars:
+  output_file_location: "/home/mhemmings/data"
+  execute_script_command: |
+    docker run --rm -v /home/mhemmings/data:/home/lind/lind_project/tests/ipc_performance/total_runtime/data \
+    -u root --privileged --ipc=host --init --cap-add=SYS_PTRACE \
+    securesystemslab/lind_ubuntu:lite bash -c \
+    "git config --global --add safe.directory /home/lind/lind_project && git pull && git checkout lock-sphere && cd tests/ipc_performance/total_runtime/ && ./lock_benchmark.sh 10 2>&1 | tee /home/lind/lind_project/tests/ipc_performance/total_runtime/data/run.log"

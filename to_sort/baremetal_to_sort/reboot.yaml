@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: true
+  strategy: free
+  tasks:
+    - name: Reboot the host
+      reboot:
+        msg: "Rebooting the machine"

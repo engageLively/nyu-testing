@@ -1,0 +1,7 @@
+native_pg_bench_vars:
+  output_file_location: "/home/mhemmings/data"
+  execute_script_command: |
+    docker run --rm -v /home/mhemmings/data:/home/lind/data \
+    -u root --privileged --ipc=host --init --cap-add=SYS_PTRACE \
+    securesystemslab/lind_ubuntu:pgbench-native bash -c \
+    "su - lind -c 'cd /home/lind/lamp_native/ && ./grab_pg_output.sh 5' && cp /home/lind/lamp_native/tps_data.json /home/lind/data"

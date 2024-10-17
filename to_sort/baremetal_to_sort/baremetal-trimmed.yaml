@@ -1,0 +1,28 @@
+- hosts: a
+  strategy: free
+  become: true
+  vars_files:
+    - test_total_runtime_vars.yaml   
+
+  tasks:
+    - name: collect tarballs
+      fetch:
+        src: /tmp/lind_project/data.tar.gz
+        dest: ~/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data
+        flat: no
+    - name: Debug tarball path
+      debug:
+        msg: "Tarball path: ~/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/{{ ansible_hostname }}/tmp/lind_project/data.tar.gz"
+    
+    - name: Debug extraction directory
+      debug:
+        msg: "Extraction directory: ~/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/"
+
+    - name: Untar the collected tarball on the host machine
+      command: tar -xzf /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/{{ ansible_hostname }}/tmp/lind_project/data.tar.gz -C /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/
+      delegate_to: localhost
+    - name: Remove the specific results folder
+      file:
+        path: /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/{{ ansible_hostname }}
+        state: absent
+      delegate_to: localhost

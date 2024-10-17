@@ -1,0 +1,4 @@
+sfi_penalty_vars:
+  script_file_location: "/home/mhemmings/hello/lind_micro.tar.gz"
+  output_file_location: "/tmp/lind_project/sfi/data/"
+  execute_script_command: "cd /tmp/lind_project && source general.sh && cd sfi && chmod +x sfi.sh && ./sfi.sh 10"

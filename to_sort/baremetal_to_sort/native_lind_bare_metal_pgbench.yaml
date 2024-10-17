@@ -1,0 +1,62 @@
+- hosts: a6,a7,a8,a9,a10
+  strategy: free
+  become: true
+  vars_files:
+    - native_lind_bare_metal_pgbench_vars.yaml
+
+  tasks:
+    - debug:
+        var: native_lind_bare_metal_pgbench_vars
+    - name: Install libraries on remote node using libraries.sh
+      script: libraries.sh
+
+    - name: Remove all contents of /tmp/lind_project but keep the directory
+      shell: |
+        rm -rf /tmp/*
+        if [ ! -d /tmp ]; then
+          mkdir -p /tmp
+        fi
+
+    - name: Ensure /tmp/data directory exists
+      file:
+        path: /tmp/data
+        state: directory
+        mode: '0755'
+
+    - name: Copy native_lind_bare_metal_pgbench script file
+      copy:
+        src: "{{ native_lind_bare_metal_pgbench_vars.script_file_location }}"
+        dest: "/tmp/lind.tar.gz"
+      when: "'a' in inventory_hostname"
+
+    
+    - name: Untar the file
+      unarchive:
+        src: "/tmp/lind.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
+      when: "'a' in inventory_hostname"
+        
+    - name: Execute buffer_allocation script on remote node
+      shell: "bash -c '{{ native_lind_bare_metal_pgbench_vars.execute_script_command }}'"
+      when: "'a' in inventory_hostname"
+      register: script_output_a
+    
+    - name: Create tar.gz archive of the data directory for buffer_allocation
+      archive:
+        path: "{{ native_lind_bare_metal_pgbench_vars.output_file_location }}"
+        dest: /tmp/lind_project/data.tar.gz
+        format: gz
+      when: "'a' in inventory_hostname"
+
+    - name: Collect tarballs and organize by type of test
+      fetch:
+        src: /tmp/lind_project/data.tar.gz
+        dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_pgbench' }}--{{ ansible_hostname }}"
+      when: "'a' in inventory_hostname"
+    
+    - name: Untar the collected tarball on the host machine
+      command: >
+        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_pgbench' }}--{{ ansible_hostname }}/{{ ansible_hostname}}/tmp/lind_project/data.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_pgbench' }}--{{ ansible_hostname }}/
+      delegate_to: localhost
+      when: "'a' in inventory_hostname"

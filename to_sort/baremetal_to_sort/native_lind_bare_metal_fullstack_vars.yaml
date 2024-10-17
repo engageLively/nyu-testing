@@ -1,0 +1,4 @@
+native_lind_bare_metal_fullstack_vars:
+  script_file_location: "/project/mhemmings/notebooks/hello/native_lamp_stack.tar.gz"
+  output_file_location: "/tmp/data"
+  execute_script_command: "cd /tmp/lind_project && source general.sh && ./lind_setup_lamp.sh 2>&1 | tee /tmp/data/run.log "

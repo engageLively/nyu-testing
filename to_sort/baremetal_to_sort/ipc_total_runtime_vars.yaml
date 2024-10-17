@@ -1,0 +1,4 @@
+ipc_total_runtime_vars:
+  script_file_location: "/home/mhemmings/hello/lind_micro.tar.gz"
+  output_file_location: "/tmp/lind_project/total_runtime/data/"
+  execute_script_command: "cd /tmp/lind_project && source general.sh && cd total_runtime && chmod +x total_ipc.sh && ./total_ipc.sh 10"

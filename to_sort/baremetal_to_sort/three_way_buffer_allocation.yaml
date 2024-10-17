@@ -1,0 +1,72 @@
+- hosts: b1,b2,b3,b4,b5,b6,b7,b8,b9,b10
+  strategy: free
+  become: true
+  vars_files:
+    - three_way_buffer_allocation_vars.yaml
+
+  tasks:
+    - name: Copy install docker script
+      copy:
+        src: /home/mhemmings/get-docker.sh
+        dest: /tmp/get-docker.sh
+      register: result
+      retries: 3
+      delay: 30
+      until: result is succeeded
+
+    #- name: Run install docker script
+    #  shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+    #  register: docker_install
+    #  retries: 3
+    #  delay: 30
+    #  until: docker_install.rc == 0
+
+    - name: Install lind container
+      shell: docker pull securesystemslab/lind_ubuntu:three-way
+      register: docker_pull_result
+      retries: 3
+      delay: 30
+      until: docker_pull_result.rc == 0
+
+    - name: Stop all running Docker containers
+      shell: |
+        docker ps -q | xargs -r docker stop
+      ignore_errors: yes
+      register: stop_result
+
+    - name: Remove all contents of /home/mhemmings/data/ but keep the directory
+      shell: |
+        rm -rf /home/mhemmings/data/*
+        if [ ! -d /home/mhemmings/data ]; then
+          mkdir -p /home/mhemmings/data
+        fi
+      register: remove_result
+
+    - name: Execute ipc_total_runtime script on remote node
+      shell: "bash -c '{{ three_way_buffer_allocation_vars.execute_script_command }}'"
+      when: "'b' in inventory_hostname"
+      register: script_output_b
+      retries: 3
+      delay: 30
+      until: script_output_b.rc == 0
+
+    - name: Create tar.gz archive of the data directory for ipc_total_runtime
+      archive:
+        path: "{{ three_way_buffer_allocation_vars.output_file_location }}"
+        dest: /home/mhemmings/data/data.tar.gz
+        format: gz
+      when: "'b' in inventory_hostname"
+      register: archive_b_result
+
+    - name: Collect tarballs and organize by type of test
+      fetch:
+        src: /home/mhemmings/data/data.tar.gz
+        dest: /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'three_way_buffer_allocation' if 'b' in inventory_hostname }}--{{ ansible_hostname }}      
+      register: fetch_result
+
+    - name: Untar the collected tarball on the host machine
+      command: >
+        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'three_way_buffer_allocation' if 'b' in inventory_hostname }}--{{ ansible_hostname }}/{{ ansible_hostname }}/home/mhemmings/data/data.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'three_way_buffer_allocation' if 'b' in inventory_hostname }}--{{ ansible_hostname }}/
+      delegate_to: localhost
+      register: untar_result
+

@@ -1,0 +1,4 @@
+syscall_overhead_vars:
+  script_file_location: "/home/mhemmings/hello/lind_write.tar.gz"
+  output_file_location: "/tmp/lind_project/overhead/data/"
+  execute_script_command: "cd /tmp/lind_project && source general.sh && cd overhead && chmod +x write_overhead.sh && ./write_overhead.sh 10"

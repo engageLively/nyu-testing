@@ -1,0 +1,4 @@
+buffer_allocation_vars:
+  script_file_location: "/home/mhemmings/hello/lind_micro.tar.gz"
+  output_file_location: "/tmp/lind_project/buf_allocation/data/"
+  execute_script_command: "cd /tmp/lind_project && source general.sh && cd buf_allocation && chmod +x buf.sh && ./buf.sh 10"

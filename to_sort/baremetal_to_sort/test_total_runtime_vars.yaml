@@ -1,0 +1,3 @@
+test_file_location_localhost: "test_total_runtime.sh"
+output_file_location: "/tmp/lind_project/data"
+execute_script_command: "cd /tmp/lind_project && source global.sh && chmod +x ./ipc_total.sh && ./ipc_total.sh 10"

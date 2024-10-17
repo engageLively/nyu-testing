@@ -1,0 +1,4 @@
+native_lind_bare_metal_pgbench_vars:
+  script_file_location: "/home/mhemmings/hello/pgbench_lind.tar.gz"
+  output_file_location: "/tmp/data"
+  execute_script_command: "cd /tmp/lind_project && source general.sh && ./grab_lind_pg.sh 5 2>&1 | tee /tmp/data/run.log && cp /tmp/lind_project/tps_data.json /tmp/data"

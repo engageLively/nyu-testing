@@ -1,0 +1,79 @@
+- hosts: a1,a2,a3,a4,a5
+  strategy: free
+  become: true
+  vars_files:
+    - native_pg_bench_vars.yaml
+
+  tasks:
+    - name: copy install docker script
+      copy:
+        src: /home/mhemmings/get-docker.sh
+        dest: /tmp/get-docker.sh
+      retries: 3
+      delay: 30
+      until: result is succeeded
+      register: result
+
+    - name: run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install
+      retries: 3
+      delay: 30
+      until: docker_install.rc == 0
+
+    - name: install lind container
+      shell: docker pull securesystemslab/lind_ubuntu:pgbench-native
+      retries: 3
+      delay: 30
+      until: docker_pull_result.rc == 0
+      register: docker_pull_result
+
+    - name: Stop all running Docker containers
+      shell: |
+        docker ps -q | xargs -r docker stop
+      ignore_errors: yes
+      register: stop_result
+
+    - name: Remove all contents of /mhemmings/data/ but keep the directory
+      shell: |
+        rm -rf /home/mhemmings/*
+        if [ ! -d /home/mhemmings/data ]; then
+          mkdir -p /home/mhemmings/data
+        fi
+      register: remove_result
+
+
+    - name: Execute ipc_total_runtime script on remote node
+      shell: "{{ native_pg_bench_vars.execute_script_command }}"
+      when: "'a' in inventory_hostname"
+      register: script_output_a
+      #retries: 3
+      #delay: 30
+      #until: script_output_a.rc == 0
+
+    - name: Save the output to a log file on the control machine
+      copy:
+        content: "{{ script_output_a.stdout }}\n{{ script_output_a.stderr }}"
+        dest: "/home/mhemmings/baremetal/results/run-{{ inventory_hostname }}.log"
+      when: "'a' in inventory_hostname"
+      delegate_to: localhost
+
+    - name: Create tar.gz archive of the data directory for ipc_total_runtime
+      archive:
+        path: "{{ native_pg_bench_vars.output_file_location }}"
+        dest: /home/mhemmings/data.tar.gz
+        format: gz
+      when: "'a' in inventory_hostname"
+      register: archive_a_result
+
+    - name: Collect tarballs and organize by type of test
+      fetch:
+        src: /home/mhemmings/data.tar.gz
+        dest: "~/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_pg_bench_vars' }}--{{ ansible_hostname }}"      
+      register: fetch_result
+
+    - name: Untar the collected tarball on the host machine
+      command: >
+        tar -xzf /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_pg_bench_vars' }}--{{ ansible_hostname }}/{{ ansible_hostname }}/home/mhemmings/data.tar.gz -C /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_pg_bench_vars' }}--{{ ansible_hostname }}/
+      delegate_to: localhost
+      register: untar_result

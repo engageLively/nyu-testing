@@ -1,0 +1,11 @@
+three_way_buffer_allocation_vars:
+  output_file_location: "/home/mhemmings/data"
+  execute_script_command: |
+    docker run --rm -v /home/mhemmings/data:/home/lind/lind_project/tests/ipc_performance/buf_allocate/data \
+    -u root --privileged --ipc=host --init --cap-add=SYS_PTRACE \
+    securesystemslab/lind_ubuntu:three-way bash -c \
+    "git config --global --add safe.directory /home/lind/lind_project && \
+    git pull && \
+    cd tests/ipc_performance/buf_allocate/ && \
+    ./compile.sh && \
+    ./benchmark.sh 10 2>&1 | tee /home/lind/lind_project/tests/ipc_performance/buf_allocate/data/run.log"
