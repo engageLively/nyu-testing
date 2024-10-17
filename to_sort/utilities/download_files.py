@@ -2,8 +2,8 @@ import gdown
 import time
 
 # File 1: lind_micro.tar.gz
-url_1 = "https://drive.google.com/uc?id=1w6WsojPh4oAZMVkqXmwmh-_U6Qt6dLbJ"
-output_1 = "native_lamp_stack.tar.gz"
+url_1 = "https://drive.google.com/uc?id=1cYxJdwsOvk0hX1W2GkZ7f4FY7IHkPkHJ"
+output_1 = "/project/mhemmings/notebooks/nyu-testing/native_lamp_stack.tar.gz"
 max_retries = 10
 
 for attempt in range(max_retries):
