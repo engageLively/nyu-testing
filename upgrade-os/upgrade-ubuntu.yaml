@@ -1,0 +1,66 @@
+- name: Upgrade Ubuntu 20.04 to Ubuntu 24.04 (Non-interactive)
+  hosts: all
+  become: yes
+  strategy: free
+  vars:
+    apt_env:
+      DEBIAN_FRONTEND: noninteractive
+
+  tasks:
+    - name: Update package list
+      apt:
+        update_cache: yes
+      environment: "{{ apt_env }}"
+
+    - name: Upgrade all installed packages
+      apt:
+        upgrade: dist
+      environment: "{{ apt_env }}"
+
+    - name: Perform full upgrade
+      apt:
+        upgrade: full
+      environment: "{{ apt_env }}"
+
+    - name: Install update-manager-core
+      apt:
+        name: update-manager-core
+        state: present
+      environment: "{{ apt_env }}"
+
+    - name: Update sources list from Focal to Lunar
+      lineinfile:
+        path: /etc/apt/sources.list
+        regexp: 'focal'
+        line: "{{ item }}"
+      loop:
+        - 'deb http://archive.ubuntu.com/ubuntu/ lunar main restricted universe multiverse'
+        - 'deb http://archive.ubuntu.com/ubuntu/ lunar-updates main restricted universe multiverse'
+        - 'deb http://archive.ubuntu.com/ubuntu/ lunar-backports main restricted universe multiverse'
+        - 'deb http://security.ubuntu.com/ubuntu lunar-security main restricted universe multiverse'
+
+    - name: Update package list after sources update
+      apt:
+        update_cache: yes
+      environment: "{{ apt_env }}"
+
+    - name: Minimal upgrade
+      apt:
+        upgrade: safe
+      environment: "{{ apt_env }}"
+
+    - name: Full upgrade
+      apt:
+        upgrade: full
+      environment: "{{ apt_env }}"
+
+    - name: Autoremove unnecessary packages
+      apt:
+        autoremove: yes
+      environment: "{{ apt_env }}"
+
+    - name: Reboot the system
+      reboot:
+        msg: "Rebooting after upgrade"
+        connect_timeout: 5
+        reboot_timeout: 600
