@@ -1,4 +1,4 @@
-#- import_playbook: wrk_install.yml
+- import_playbook: wrk_install.yml
 
 - hosts: a10
   strategy: free
@@ -8,35 +8,35 @@
 
 
   tasks:
-#    - debug:
-#        var: native_lind_bare_metal_fullstack_vars
-
-#    - name: Install libraries on remote node using libraries.sh
-#      script: libraries.sh
-
-#    - name: Remove all contents of /tmp/lind_project but keep the directory
-#      shell: |
-#        rm -rf /tmp/*
-#        if [ ! -d /tmp ]; then
-#          mkdir -p /tmp
-#        fi
+    - debug:
+        var: native_lind_bare_metal_fullstack_vars
         
-#    - name: Ensure /tmp/data directory exists
-#      file:
-#        path: /tmp/data
-#        state: directory
-#        mode: '0755'
+    - name: Install libraries on remote node using libraries.sh
+      script: libraries.sh
 
-#    - name: Copy native_lind_bare_metal_pgbench script file
-#      copy:
-#        src: "{{ native_lind_bare_metal_fullstack_vars.script_file_location }}"
-#        dest: "/tmp/lind.tar.gz"
+    - name: Remove all contents of /tmp/lind_project but keep the directory
+      shell: |
+        rm -rf /tmp/*
+        if [ ! -d /tmp ]; then
+          mkdir -p /tmp
+        fi
+        
+    - name: Ensure /tmp/data directory exists
+      file:
+        path: /tmp/data
+        state: directory
+        mode: '0755'
 
-#    - name: Untar the file
-#      unarchive:
-#        src: "/tmp/lind.tar.gz"
-#        dest: "/tmp/"
-#        remote_src: yes
+    - name: Copy native_lind_bare_metal_pgbench script file
+      copy:
+        src: "{{ native_lind_bare_metal_fullstack_vars.script_file_location }}"
+        dest: "/tmp/lind.tar.gz"
+
+    - name: Untar the file
+      unarchive:
+        src: "/tmp/lind.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
 
     - name: Execute buffer_allocation script on remote node
       shell: "bash -c '{{ native_lind_bare_metal_fullstack_vars.execute_script_command }}'"
