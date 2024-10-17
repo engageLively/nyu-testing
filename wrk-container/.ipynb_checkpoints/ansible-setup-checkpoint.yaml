@@ -1,0 +1,65 @@
+- hosts: all
+  strategy: free
+  become: true
+  tasks:
+    - name: Copy install docker script
+      copy:
+        src: /home/mhemmings/get-docker.sh
+        dest: /tmp/get-docker.sh        
+      
+    - name: Run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install
+      
+    - name: Copy entire folder from host to remote node
+      copy:
+        src: ~/wrk-container
+        dest: /tmp/
+        
+    - name: Install libraries
+      shell: bash /tmp/wrk-container/install_libraries.sh
+      
+    - name: Build and start docker containers
+      shell: bash -c "docker-compose -f /tmp/wrk-container/docker-compose.yaml --project-directory /tmp/wrk-container up -d --build"
+      register: docker_build
+
+    - debug: msg="{{ docker_build.stdout }}"
+    - debug: msg="{{ docker_build.stderr }}"
+
+    - name: Run sample wrk job
+      shell: bash -c "docker exec wrk wrk http://flask:5000"
+      register: wrk
+
+    - debug: msg="{{ wrk.stdout }}"
+    - debug: msg="{{ wrk.stderr }}"
+
+    - name: Get wrk container ID
+      shell: docker ps -qf "name=wrk"
+      register: wrk_container_id
+
+    - name: Capture logs from wrk container
+      shell: docker logs {{ wrk_container_id.stdout }}
+      register: wrk_logs
+
+    - debug: msg="{{ wrk_logs.stdout }}"
+    - debug: msg="{{ wrk_logs.stderr }}"
+
+    - name: Create output directory if it does not exist
+      file:
+        path: /home/mhemmings/wrk-output
+        state: directory
+
+    - name: Write docker build output to local file
+      copy:
+        content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_{{ ansible_date_time.iso8601_basic }}_build.log"
+      delegate_to: localhost
+
+    - name: Write wrk logs output to local file
+      copy:
+        content: "{{ wrk.stdout }}\n{{ wrk.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_{{ ansible_date_time.iso8601_basic }}_wrk_logs.log"
+      delegate_to: localhost
+
+    - name: Bring down docker containers
+      shell: bash -c "docker-compose -f /tmp/wrk-container/docker-compose.yaml --project-directory /tmp/wrk-container down"

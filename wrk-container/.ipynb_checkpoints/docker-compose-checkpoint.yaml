@@ -1,0 +1,21 @@
+version: '3'
+services:
+  wrk:
+    build: ./wrk
+    container_name: wrk
+    depends_on:
+      - flask
+    networks:
+      - benchmark-network
+
+  flask:
+    build: ./flask
+    container_name: flask
+    ports:
+      - "5000:5000"
+    networks:
+      - benchmark-network
+
+networks:
+  benchmark-network:
+    driver: bridge
