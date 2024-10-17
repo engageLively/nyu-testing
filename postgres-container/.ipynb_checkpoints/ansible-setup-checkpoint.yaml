@@ -1,0 +1,30 @@
+- hosts: a1
+  strategy: free
+  become: true
+  tasks:
+    - name: Copy install docker script
+      copy:
+        src: /project/mhemmings/notebooks/get-docker.sh
+        dest: /tmp/get-docker.sh        
+      
+    - name: Run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install
+      
+    - name: Copy entire folder from host to remote node
+      copy:
+        src: /project/mhemmings/notebooks/postgres-container
+        dest: /tmp/
+        
+    - name: Install libraries
+      shell: bash /tmp/postgres-container/install_libraries.sh
+      
+    - name: Build and start docker containers
+      shell: bash -c "docker-compose -f /tmp/postgres-container/docker-compose.yaml --project-directory /tmp/postgres-container up -d --build"
+      register: docker_build
+
+    - debug: msg="{{ docker_build.stdout }}"
+    - debug: msg="{{ docker_build.stderr }}"    
+
+    - name: Bring down docker containers
+      shell: bash -c "docker-compose -f /tmp/postgres-container/docker-compose.yaml --project-directory /tmp/postgres-container down"
