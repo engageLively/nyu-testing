@@ -1,0 +1,37 @@
+#version: '3'
+services:
+  #wrk:
+  #  build: ./wrk
+  #  container_name: wrk
+  #  depends_on:
+  #    - lind_benchmark
+  #  networks:
+  #    - benchmark-network
+
+  lind_benchmark:
+      image: securesystemslab/lind_ubuntu:nat_lamp_lite
+      container_name: lind_benchmark_container
+      user: lind
+      privileged: true
+      ipc: host
+      cap_add:
+        - SYS_PTRACE
+      ports:
+        - "80:80"
+      command: >
+        bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling &&
+                 ./nat_run_lamp.sh"
+      networks:
+        - benchmark-network
+      volumes:
+        - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+      environment:
+        LD_LIBRARY_PATH: "/usr/local/python-gcc4/lib:/usr/local/pgsql/lib:$LD_LIBRARY_PATH"
+        PYTHONHOME: "/usr/local/python-gcc4"
+        PYTHONPATH: "/usr/local/python-gcc4/lib:/usr/local/python-gcc4/lib/python2.7/site-packages"
+        PATH: "/usr/local/python-gcc4/bin:$PATH"
+
+
+networks:
+  benchmark-network:
+    driver: bridge

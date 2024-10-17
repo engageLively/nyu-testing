@@ -1,0 +1,47 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Stop all running containers if any are present
+      shell: docker ps -q
+      register: running_containers
+      changed_when: false
+
+    - name: Stop running containers
+      shell: docker stop $(docker ps -q)
+      when: running_containers.stdout | length > 0
+
+    - name: Remove all stopped containers
+      shell: docker container prune -f
+      register: container_prune_output
+      changed_when: "'Total reclaimed space' in container_prune_output.stdout"
+
+    #- name: Remove all Docker images
+    #  shell: docker image prune -a -f
+    #  register: image_prune_output
+    #  changed_when: "'Total reclaimed space' in image_prune_output.stdout"
+
+    #- name: Remove all unused volumes
+    #  shell: docker volume prune -f
+    #  register: volume_prune_output
+    #  changed_when: "'Total reclaimed space' in volume_prune_output.stdout"
+
+    #- name: Remove all unused networks
+    #  shell: docker network prune -f
+    #  register: network_prune_output
+    #  changed_when: "'Total reclaimed space' in network_prune_output.stdout"
+
+    - name: Display reclaimed space from containers
+      debug:
+        msg: "{{ container_prune_output.stdout }}"
+
+    # - name: Display reclaimed space from images
+    #   debug:
+    #     msg: "{{ image_prune_output.stdout }}"
+
+    - name: Display reclaimed space from volumes
+      debug:
+        msg: "{{ volume_prune_output.stdout }}"
+
+    - name: Display reclaimed space from networks
+      debug:
+        msg: "{{ network_prune_output.stdout }}"
