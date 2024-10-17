@@ -1,0 +1,9 @@
+- hosts: b
+  strategy: free
+  become: true
+  tasks: 
+    - name: collect file
+      fetch:
+        src: /home/mhemmings/lind_total_runtime.tar.gz
+        dest: /home/mhemmings/lind_total_runtime.tar.gz
+        flat: yes

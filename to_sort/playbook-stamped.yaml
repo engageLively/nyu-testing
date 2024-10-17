@@ -1,0 +1,88 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: check machines
+      shell: |
+          echo "CPUs: $(nproc)"
+          echo "Memory: $(free -g | awk '/^Mem:/{print $7}') GB"
+      register: machinecheck
+    - debug: msg="{{machinecheck.stdout}}"
+    - debug: msg="{{machinecheck.stderr}}"
+    - name: copy installer shell script
+      copy:
+        src:  /home/mhemmings/hello/install_libraries.sh
+        dest: /tmp/install_libraries.sh
+        
+    - name: install libraries
+      shell: bash /tmp/install_libraries.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      
+    - name: copy install docker script
+      copy:
+        src: /home/mhemmings/get-docker.sh
+        dest: /tmp/get-docker.sh
+    #- name: copy dockerfile
+    #  copy:
+    #    src: /home/mhemmings/Dockerfile
+    #    dest: /tmp/Dockerfile        
+    - name: run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install
+      
+    - debug: msg="{{docker_install.stdout}}"
+    
+    - name: copy pull and run script
+      copy: 
+        src: /home/mhemmings/hello/pull-and-run.sh
+        dest: /tmp/pull-and-run.sh
+        
+    - name: run pull and run script
+      shell: bash /tmp/pull-and-run.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee /home/mhemmings/results-docker-build-and-run
+      register: helloworld    
+      #async: 450
+      #poll: 1
+      
+    #- name: check if the task timed out
+    #  fail:
+    #    msg: "Task 'run pull and run script' exceeded the time limit of 5 minutes and has been terminated."
+    #  when: helloworld.ansible_job_id is defined and helloworld.finished == 0
+   
+    # - name: run docker hello-world
+    #   shell: sudo docker run hello-world | tee /home/mhemmings/results
+    #   register: helloworld
+    
+    - debug: msg="{{helloworld.stdout}}"
+    
+    #- name: check free space
+    #  shell: df -h 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a /home/mhemmings/results
+    #  register: dfout
+    
+    #- debug: msg="{{dfout.stdout}}"
+    #- debug: msg="{{dfout.stderr}}"
+    
+    #- name: perf test
+    #  shell: perf stat -e cache-misses dd if=/dev/zero of=/dev/null bs=1M count=1024 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee -a /home/mhemmings/results
+    #  register: perfout
+    
+    #- debug: msg="{{perfout.stdout}}"
+    #- debug: msg="{{perfout.stderr}}"
+
+    - name: Create a tar.gz archive of the /home/mhemmings/data directory
+      archive:
+        path: /home/mhemmings/data
+        dest: /home/mhemmings/data.tar.gz
+        format: gz
+    - name: collect tarballs
+      fetch:
+        src: /home/mhemmings/data.tar.gz
+        dest: results/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data.tar.gz
+        flat: yes
+    #- name: collect results
+    #  fetch:
+    #    src: /home/mhemmings/results
+    #    dest: results/results-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}
+    #    flat: yes
+    - name: collect results
+      fetch:
+        src: /home/mhemmings/results-docker-build-and-run
+        dest: results/results-docker-build-and-run-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}
+        flat: yes

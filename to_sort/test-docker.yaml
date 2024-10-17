@@ -1,0 +1,20 @@
+- name: Test connectivity to download.docker.com
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ping download.docker.com with a count of 3
+      ansible.builtin.command: ping -c 3 download.docker.com
+      register: ping_result
+      ignore_errors: yes
+
+    - name: Display the result
+      debug:
+        msg: |
+          Host: {{ inventory_hostname }}
+          Result: {{ ping_result.stdout }}
+          Exit status: {{ ping_result.rc }}
+
+    - name: Check if the ping was successful
+      fail:
+        msg: "Ping to download.docker.com failed on {{ inventory_hostname }}."
+      when: ping_result.rc != 0

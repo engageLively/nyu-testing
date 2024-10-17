@@ -1,0 +1,72 @@
+- hosts: all
+  strategy: free
+  become: true
+  tasks:
+    - name: check machines
+      shell: |
+        echo "CPUs: $(nproc)"
+        echo "Memory: $(free -g | awk '/^Mem:/{print $7}') GB"
+      register: machinecheck
+
+    - debug: msg="{{ machinecheck.stdout }}"
+
+    - debug: msg="{{ machinecheck.stderr }}"
+
+    - name: copy installer shell script
+      copy:
+        src: /home/mhemmings/hello/install_libraries.sh
+        dest: /tmp/install_libraries.sh
+        
+    - name: install libraries
+      shell: bash /tmp/install_libraries.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: install_out
+
+    - debug: msg="{{ install_out.stdout }}"
+
+    - debug: msg="{{ install_out.stderr }}"
+
+    - name: copy install docker script
+      copy:
+        src: /home/mhemmings/get-docker.sh
+        dest: /tmp/get-docker.sh
+        
+    - name: run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install
+      
+    - name: copy pull and run script
+      copy: 
+        src: /home/mhemmings/hello/pull-and-run.sh
+        dest: /tmp/pull-and-run.sh
+        
+    - name: run pull and run script
+      shell: bash /tmp/pull-and-run.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' | tee /home/mhemmings/results-docker-build-and-run
+      register: helloworld    
+
+    - name: collect results
+      fetch:
+        src: /home/mhemmings/results-docker-build-and-run
+        dest: results/results-docker-build-and-run-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}
+        flat: yes
+
+    - name: Create a tar.gz archive of the /home/mhemmings/data directory
+      archive:
+        path: /home/mhemmings/data
+        dest: /home/mhemmings/data.tar.gz
+        format: gz
+        
+    - name: collect tarballs
+      fetch:
+        src: /home/mhemmings/data.tar.gz
+        dest: /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data
+        flat: no
+
+    - name: Untar the collected tarball on the host machine
+      command: tar -xzf /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/{{ ansible_hostname }}/home/mhemmings/data.tar.gz -C /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/
+      delegate_to: localhost
+
+    - name: Remove the specific results folder
+      file:
+        path: /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/{{ ansible_hostname }}
+        state: absent
+      delegate_to: localhost

@@ -1,0 +1,29 @@
+- hosts: c
+  strategy: free
+  become: true
+  tasks:
+    - name: Create a tar.gz archive of the /home/mhemmings/data directory
+      archive:
+        path: /home/mhemmings/data
+        dest: /home/mhemmings/data.tar.gz
+        format: gz
+
+    - name: collect tarballs
+      fetch:
+        src: /home/mhemmings/data.tar.gz
+        dest: /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data
+        flat: no
+
+- hosts: all
+  strategy: free
+  become: true
+  tasks:
+    - name: Untar the collected tarball on the host machine
+      command: tar -xzf /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/{{ ansible_hostname }}/home/mhemmings/data.tar.gz -C /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/
+      delegate_to: localhost
+
+    - name: Remove the specific results folder
+      file:
+        path: /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}--data/{{ ansible_hostname }}
+        state: absent
+      delegate_to: localhost

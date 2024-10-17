@@ -1,0 +1,16 @@
+- hosts: all
+  become: true
+  tasks:    
+    - name: copy pull and run script
+      copy: 
+        src: /home/mhemmings/hello/pull-and-run.sh
+        dest: /tmp/pull-and-run.sh
+    - name: run pull and run script
+      shell: bash /tmp/pull-and-run.sh 2>&1 | tee /home/mhemmings/results
+      register: helloworld
+    - name: collect results
+      fetch:
+        src: /home/mhemmings/results
+        dest: results/results-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}
+        flat: yes
+    

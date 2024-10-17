@@ -1,0 +1,51 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: copy installer shell script
+      copy:
+        src:  /home/mhemmings/hello/install_libraries.sh
+        dest: /tmp/install_libraries.sh
+    - name: install libraries
+      shell: bash /tmp/install_libraries.sh
+    - name: copy install docker script
+      copy:
+        src: /home/mhemmings/get-docker.sh
+        dest: /tmp/get-docker.sh
+    - name: run install docker script
+      shell: bash /tmp/get-docker.sh      
+      register: docker_install
+    - debug:  msg="{{docker_install.stdout}}"
+    - name: copy pull and run script
+      copy: 
+        src: /home/mhemmings/hello/pull-and-run.sh
+        dest: /tmp/pull-and-run.sh
+    - name: run pull and run script
+      shell: bash /tmp/pull-and-run.sh 2>&1 | tee /home/mhemmings/results
+      register: helloworld    
+      async: 450
+      poll: 1
+    - name: check if the task timed out
+      fail:
+        msg: "Task 'run pull and run script' exceeded the time limit of 5 minutes and has been terminated."
+      when: helloworld.ansible_job_id is defined and helloworld.finished == 0
+   
+    #- name: run docker hello-world
+    #  shell: sudo docker run hello-world | tee /home/mhemmings/results
+    #  register: helloworld
+    - debug: msg="{{helloworld.stdout}}"    
+    - name: check free space
+      shell: df -h 2>&1 | tee -a /home/mhemmings/results
+      register: dfout
+    - debug: msg="{{dfout.stdout}}"
+    - debug: msg="{{dfout.stderr}}"
+    - name: perf test
+      shell: perf stat -e cache-misses dd if=/dev/zero of=/dev/null bs=1M count=1024 2>&1 | tee -a /home/mhemmings/results
+      register: perfout
+    - debug: msg="{{perfout.stdout}}"
+    - debug: msg="{{perfout.stderr}}"
+    - name: collect results
+      fetch:
+        src: /home/mhemmings/results
+        dest: results/results-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ ansible_hostname }}        
+        #dest: results
+        flat: yes
