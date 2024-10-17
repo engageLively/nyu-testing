@@ -1,0 +1,89 @@
+- hosts: a1,a2,a3,a4,a5,a6,a7,a8,a9,a10
+  strategy: free
+  become: true
+  vars_files:
+    - fourway_vars.yaml
+    - locking_vars.yaml    
+
+  tasks:
+
+    - name: copy install docker script
+      copy:
+        src: /home/mhemmings/get-docker.sh
+        dest: /tmp/get-docker.sh
+      retries: 3
+      delay: 30
+      until: result is succeeded
+      register: result
+
+    - name: run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install
+      retries: 3
+      delay: 30
+      until: docker_install.rc == 0
+
+    - name: install lind container
+      shell: docker pull securesystemslab/lind_ubuntu:lite
+      retries: 3
+      delay: 30
+      until: docker_pull_result.rc == 0
+      register: docker_pull_result
+
+    - name: Stop all running Docker containers
+      shell: |
+        docker ps -q | xargs -r docker stop
+      ignore_errors: yes
+      register: stop_result
+
+    - name: Remove all contents of /mhemmings/data/ but keep the directory
+      shell: |
+        rm -rf /home/mhemmings/*
+        if [ ! -d /tmp ]; then
+          mkdir -p /home/mhemmings/data
+        fi
+      register: remove_result
+
+    - name: Execute buffer_allocation script on remote node
+      shell: "bash -c '{{ fourway_vars.execute_script_command }}'"
+      when: "'a' in inventory_hostname"
+      register: script_output_a
+      retries: 3
+      delay: 30
+      until: script_output_a.rc == 0
+
+    - name: Execute ipc_total_runtime script on remote node
+      shell: "bash -c '{{ locking_vars.execute_script_command }}'"
+      when: "'b' in inventory_hostname"
+      register: script_output_b
+      retries: 3
+      delay: 30
+      until: script_output_b.rc == 0
+
+    - name: Create tar.gz archive of the data directory for buffer_allocation
+      archive:
+        path: "{{ fourway_vars.output_file_location }}"
+        dest: /home/mhemmings/data.tar.gz
+        format: gz
+      when: "'a' in inventory_hostname"      
+      register: archive_a_result
+
+    - name: Create tar.gz archive of the data directory for ipc_total_runtime
+      archive:
+        path: "{{ locking_vars.output_file_location }}"
+        dest: /home/mhemmings/data.tar.gz
+        format: gz
+      when: "'b' in inventory_hostname"      
+      register: archive_b_result
+
+    - name: Collect tarballs and organize by type of test
+      fetch:
+        src: /home/mhemmings/data.tar.gz
+        dest: "~/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'fourway_tests' if 'a' in inventory_hostname else 'locking_tests' }}--{{ ansible_hostname }}"      
+      register: fetch_result
+
+    - name: Untar the collected tarball on the host machine
+      command: >
+        tar -xzf /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'fourway_tests' if 'a' in inventory_hostname else 'locking_tests' }}--{{ ansible_hostname }}/{{ ansible_hostname }}/home/mhemmings/data.tar.gz -C /home/mhemmings/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'fourway_tests' if 'a' in inventory_hostname else 'locking_tests' }}--{{ ansible_hostname }}/
+      delegate_to: localhost      
+      register: untar_result
