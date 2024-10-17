@@ -1,0 +1,97 @@
+- hosts: all
+  strategy: free
+  become: true
+  tasks:
+    - name: Copy install docker script
+      copy:
+        src: /project/mhemmings/notebooks/get-docker.sh
+        dest: /tmp/get-docker.sh        
+
+    - name: Run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install
+
+    - name: Copy entire folder from host to remote node
+      copy:
+        src: /project/mhemmings/notebooks/lamp-wrk
+        dest: /tmp/
+        
+    - name: Install libraries
+      shell: bash /tmp/lamp-wrk/install_libraries.sh
+
+    - name: Create output directory if it does not exist
+      file:
+        path: /home/mhemmings/wrk-output
+        state: directory    
+
+    - name: Build and start docker containers
+      shell: bash -c "docker-compose -f /tmp/lamp-wrk/docker-compose.yaml --project-directory /tmp/lamp-wrk up -d"
+      register: docker_build
+
+    - name: Write docker build output to local file
+      copy:
+        content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_{{ ansible_date_time.iso8601_basic }}_build.log"      
+
+    - name: Wait for 5 minutes
+      shell: sleep 150
+      async: 0
+      poll: 0
+
+    - name: Run wrk job for queries=10
+      shell: bash -c "cd /tmp/lamp-wrk && docker-compose exec lind_benchmark wrk -t1 -c1 -d30 --timeout 30 http://localhost:80/queries?queries=10"
+      register: wrk_queries      
+      tags: wrk_tests
+
+    - name: Write output for queries=10 on remote host
+      copy:
+        content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_queries_10.log"
+      
+
+    - name: Run wrk job for /db
+      shell: bash -c "cd /tmp/lamp-wrk && docker-compose exec lind_benchmark wrk -t1 -c1 -d30 --timeout 30 http://localhost:80/db"
+      register: wrk_db
+      tags: wrk_tests
+
+    - name: Write output for /db on remote host
+      copy:
+        content: "{{ wrk_db.stdout }}\n{{ wrk_db.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_db.log"
+      
+
+    - name: Run wrk job for /plaintext
+      shell: bash -c "cd /tmp/lamp-wrk && docker-compose exec lind_benchmark wrk -t1 -c1 -d30 --timeout 30 http://localhost:80/plaintext"
+      register: wrk_plaintext      
+      tags: wrk_tests
+
+    - name: Write output for /plaintext on remote host
+      copy:
+        content: "{{ wrk_plaintext.stdout }}\n{{ wrk_plaintext.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_plaintext.log"
+      
+
+    - name: Create tar.gz archive of wrk output files
+      archive:
+        path: "/home/mhemmings/wrk-output/*"
+        dest: "/tmp/wrk_output_{{ ansible_hostname }}.tar.gz"
+        format: gz
+    
+    - name: Collect tarballs and organize by type of test
+      fetch:
+        src: "/tmp/wrk_output_{{ ansible_hostname }}.tar.gz"
+        dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'wrk_output' }}--{{ ansible_hostname }}"
+      
+    - name: Untar the collected tarball on the host machine
+      command: >
+        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'wrk_output' }}--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'wrk_output' }}--{{ ansible_hostname }}
+      delegate_to: localhost
+
+    - name: Bring down docker containers
+      shell: bash -c "docker-compose -f /tmp/lamp-wrk/docker-compose.yaml --project-directory /tmp/lamp-wrk down"
+
+    - name: Stop running containers
+      shell: docker stop $(docker ps -aq)
+
+    - name: Delete containers
+      shell: bash -c "docker rm $(docker ps -aq)"
