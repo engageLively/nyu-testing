@@ -38,17 +38,38 @@
       async: 0
       poll: 0
 
-    - name: Run wrk job inside lind_benchmark container
+    - name: Run wrk job for /plaintext
       command: >
         docker exec lind_benchmark_container
-        bash -c "cd /home/lind/lind_project && ./wrk_lamp.sh 1 180 nat"
-      register: wrk_queries
-      tags: wrk_tests
+        bash -c "wrk -t1 -c1 -d30 --timeout 30 http://localhost:80/plaintext"
+      register: wrk_result_plaintext
 
-    - name: Write output for wrk job
+    - name: Write output for /plaintext
       copy:
-        content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
-        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_queries_10.log"
+        content: "{{ wrk_result_plaintext.stdout }}\n{{ wrk_result_plaintext.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_plaintext.log"
+
+    - name: Run wrk job for /db
+      command: >
+        docker exec lind_benchmark_container
+        bash -c "wrk -t1 -c1 -d30 --timeout 30 http://localhost:80/db"
+      register: wrk_result_db
+
+    - name: Write output for /db
+      copy:
+        content: "{{ wrk_result_db.stdout }}\n{{ wrk_result_db.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_db.log"
+
+    - name: Run wrk job for /queries
+      command: >
+        docker exec lind_benchmark_container
+        bash -c "wrk -t1 -c1 -d30 --timeout 30 http://localhost:80/queries?queries=10"
+      register: wrk_result_queries
+
+    - name: Write output for /queries
+      copy:
+        content: "{{ wrk_result_queries.stdout }}\n{{ wrk_result_queries.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_queries.log"
 
     - name: Create tar.gz archive of wrk output files
       archive:

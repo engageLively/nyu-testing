@@ -9,7 +9,7 @@ services:
   #    - benchmark-network
 
   lind_benchmark:
-    image: securesystemslab/lind_ubuntu:nat_lamp_lite
+    image: securesystemslab/lind_ubuntu:native_lamp
     container_name: lind_benchmark_container
     user: lind
     privileged: true
