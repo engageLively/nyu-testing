@@ -1,6 +1,6 @@
 - import_playbook: wrk_install.yml
 
-- hosts: a10
+- hosts: all
   strategy: free
   become: true
   vars_files:
