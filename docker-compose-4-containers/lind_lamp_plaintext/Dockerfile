@@ -1,3 +1,3 @@
 FROM securesystemslab/lind_ubuntu:lind_lamp_plaintext
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["lind /bin/bash lind_run_lamp.sh"]

@@ -1,3 +1,3 @@
 FROM securesystemslab/lind_ubuntu:lind_lamp_nginx
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["lind /bin/bash lind_run_nginx.sh"]
