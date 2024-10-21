@@ -8,6 +8,9 @@ services:
       - "8081:80"
     networks:
       - lind_network
+    volumes:
+      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+
 
   lind_lamp_queries:
     build:
@@ -18,6 +21,9 @@ services:
       - "8082:80"
     networks:
       - lind_network
+    volumes:
+      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+
 
   lind_lamp_mixed:
     build:
@@ -28,6 +34,9 @@ services:
       - "8083:80"
     networks:
       - lind_network
+    volumes:
+      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+
 
   #lind_nginx_static:
   #  build:
