@@ -1,6 +1,9 @@
+version: '3.8'
 services:
   lind_lamp_plaintext:
-    build: ./lind_lamp_plaintext
+    build:
+      context: .
+      dockerfile: lind_lamp_plaintext/Dockerfile
     container_name: lind_lamp_plaintext
     ports:
       - "8081:80"
@@ -8,7 +11,9 @@ services:
       - lind_network
 
   lind_lamp_queries:
-    build: ./lind_lamp_queries
+    build:
+      context: .
+      dockerfile: lind_lamp_queries/Dockerfile
     container_name: lind_lamp_queries
     ports:
       - "8082:80"
@@ -16,7 +21,9 @@ services:
       - lind_network
 
   lind_lamp_mixed:
-    build: ./lind_lamp_mixed
+    build:
+      context: .
+      dockerfile: lind_lamp_mixed/Dockerfile
     container_name: lind_lamp_mixed
     ports:
       - "8083:80"
@@ -24,14 +31,12 @@ services:
       - lind_network
 
   lind_nginx_static:
-    build: ./lind_nginx_static
+    build:
+      context: .
+      dockerfile: lind_nginx_static/Dockerfile
     container_name: lind_nginx_static
     ports:
       - "80:80"
-    depends_on:
-      - lind_lamp_plaintext
-      - lind_lamp_queries
-      - lind_lamp_mixed
     networks:
       - lind_network
 

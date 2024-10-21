@@ -1,3 +1,9 @@
-FROM nginx
+FROM nginx:alpine
 
-COPY ./nginx.conf /etc/nginx/nginx.conf
+RUN apk --no-cache add iputils
+
+COPY ./test_connectivity.sh /usr/local/bin/test_connectivity.sh
+
+RUN chmod +x /usr/local/bin/test_connectivity.sh
+
+COPY ./lind_nginx_static/nginx.conf /etc/nginx/nginx.conf
