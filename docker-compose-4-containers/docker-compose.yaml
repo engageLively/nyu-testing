@@ -4,6 +4,9 @@ services:
       context: .
       dockerfile: lind_lamp_plaintext/Dockerfile
     container_name: lind_lamp_plaintext
+    command: >
+      bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling &&
+               ./run_lamp_native.sh"
     ports:
       - "8081:80"
     networks:
@@ -38,15 +41,17 @@ services:
       - /home/mhemmings/wrk-output:/home/lind/lind_project/data
 
 
-  #lind_nginx_static:
-  #  build:
-  #    context: .
-  #    dockerfile: lind_nginx_static/Dockerfile
-  #  container_name: lind_nginx_static
-  #  ports:
-  #    - "80:80"
-  #  networks:
-  #    - lind_network
+  lind_lamp_nginx:
+    build:
+      context: .
+      dockerfile: lind_lamp_nginx/Dockerfile
+    container_name: lind_lamp_nginx
+    ports:
+      - "8084:80"
+    networks:
+      - lind_network
+    volumes:
+      - /home/mhemmings/wrk-output:/home/lind/lind_project/data  
 
 networks:
   lind_network:
