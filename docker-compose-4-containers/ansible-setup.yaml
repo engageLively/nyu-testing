@@ -16,8 +16,8 @@
         src: /project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers
         dest: /tmp/
         
-    #- name: Install libraries
-    #  shell: bash /tmp/native_docker_fullstack/install_libraries.sh
+    - name: Install libraries
+      shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
 
     - name: Create output directory if it does not exist
       file:
@@ -45,7 +45,7 @@
         content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
         dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_{{ ansible_date_time.iso8601_basic }}_build.log"      
 
-    - name: Wait for 5 minutes
+    - name: Wait for 2.5 minutes
       shell: sleep 150
       async: 0
       poll: 0
@@ -61,8 +61,23 @@
     #    content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
     #    dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_wrk.log"    
 
-    - name: test conmectivity (remove later before lind tests)
-      shell: /
+    
+
+    - name: Make the connectivity test script executable
+      command: chmod +x /tmp/docker-compose-4-containers/run_connectivity_tests.sh
+    
+    - name: Run connectivity tests
+      command: /tmp/docker-compose-4-containers/run_connectivity_tests.sh
+      register: connectivity_var
+    
+    - name: Save connectivity test output to the controller
+      local_action: 
+        module: copy
+        content: "{{ connectivity_var.stdout }}"
+        dest: "/project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers/results/{{ ansible_hostname }}_connectivity_output.txt"
+        
+    - name: Stop playbook execution
+      meta: end_play
 
     - name: Create tar.gz archive of wrk output files
       archive:
