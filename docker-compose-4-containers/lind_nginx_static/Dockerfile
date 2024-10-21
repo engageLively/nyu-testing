@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-RUN apk --no-cache add iputils
+RUN apk --no-cache add iputils bash
 
 COPY ./test_connectivity.sh /usr/local/bin/test_connectivity.sh
 
