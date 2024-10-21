@@ -1,4 +1,4 @@
-FROM securesystemslab/lind_ubuntu:lind_lamp_app2
+FROM securesystemslab/lind_ubuntu:lind_lamp_base
 
 COPY ./test_connectivity.sh /usr/local/bin/test_connectivity.sh
 
