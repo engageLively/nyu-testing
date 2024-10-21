@@ -50,20 +50,50 @@
       async: 0
       poll: 0
 
-    #- name: Run wrk job inside lind_benchmark container
-    #  command: >
-    #    docker exec lind_benchmark_container
-    #    bash -c "cd /home/lind/lind_project && ./wrk_lamp.sh 1 180 nat"
-    #  register: wrk_queries
+    - name: Run wrk job inside lind plaintext container
+      command: >
+        docker exec lind_lamp_plaintext_container
+        bash -c "cd /home/lind/lind_project && ./wrk_plaintext"
+      register: wrk_plaintext
 
-    #- name: Write output for wrk job
-    #  copy:
-    #    content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
-    #    dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_wrk.log"    
+    - name: Run wrk job inside lind queries container
+      command: >
+        docker exec lind_lamp_plaintext_container
+        bash -c "cd /home/lind/lind_project && ./wrk_queries"
+      register: wrk_queries
+
+    - name: Run wrk job inside lind mixed container
+      command: >
+        docker exec lind_lamp_plaintext_container
+        bash -c "cd /home/lind/lind_project && ./wrk_mixed"
+      register: wrk_mixed
+
+    - name: Run wrk job inside lind nginx container
+      command: >
+        docker exec lind_lamp_plaintext_container
+        bash -c "cd /home/lind/lind_project && ./wrk_nginx"
+      register: wrk_nginx
+
+    - name: Write output for wrk plaintext job
+      copy:
+        content: "{{ wrk_plaintext.stdout }}\n{{ wrk_plaintext.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_plaintext_wrk.log"
+
+    - name: Write output for wrk mixed job
+      copy:
+        content: "{{ wrk_mixed.stdout }}\n{{ wrk_mixed.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_mixed_wrk.log"
+
+    - name: Write output for wrk queries job
+      copy:
+        content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_queries_wrk.log"
     
-    - name: Stop playbook execution
-      meta: end_play
-
+    - name: Write output for wrk nginx job
+      copy:
+        content: "{{ wrk_nginx.stdout }}\n{{ wrk_nginx.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_nginx_wrk.log"    
+    
     - name: Create tar.gz archive of wrk output files
       archive:
         path: "/home/mhemmings/wrk-output/*"
