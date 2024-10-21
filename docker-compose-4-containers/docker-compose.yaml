@@ -1,0 +1,40 @@
+services:
+  lind_lamp_plaintext:
+    build: ./lind_lamp_plaintext
+    container_name: lind_lamp_plaintext
+    ports:
+      - "8081:80"
+    networks:
+      - lind_network
+
+  lind_lamp_queries:
+    build: ./lind_lamp_queries
+    container_name: lind_lamp_queries
+    ports:
+      - "8082:80"
+    networks:
+      - lind_network
+
+  lind_lamp_mixed:
+    build: ./lind_lamp_mixed
+    container_name: lind_lamp_mixed
+    ports:
+      - "8083:80"
+    networks:
+      - lind_network
+
+  lind_nginx_static:
+    build: ./lind_nginx_static
+    container_name: lind_nginx_static
+    ports:
+      - "80:80"
+    depends_on:
+      - lind_lamp_plaintext
+      - lind_lamp_queries
+      - lind_lamp_mixed
+    networks:
+      - lind_network
+
+networks:
+  lind_network:
+    driver: bridge

@@ -1,0 +1,1 @@
+FROM securesystemslab/lind_ubuntu:lind_lamp_plaintext
