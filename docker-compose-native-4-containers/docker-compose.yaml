@@ -1,0 +1,53 @@
+services:
+  lind_lamp_plaintext:
+    build:
+      context: .
+      dockerfile: lind_lamp_plaintext/Dockerfile
+    container_name: lind_lamp_plaintext
+    ports:
+      - "8081:80"
+    networks:
+      - lind_network
+    volumes:
+      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+
+
+  lind_lamp_queries:
+    build:
+      context: .
+      dockerfile: lind_lamp_queries/Dockerfile
+    container_name: lind_lamp_queries
+    ports:
+      - "8082:80"
+    networks:
+      - lind_network
+    volumes:
+      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+
+
+  lind_lamp_mixed:
+    build:
+      context: .
+      dockerfile: lind_lamp_mixed/Dockerfile
+    container_name: lind_lamp_mixed
+    ports:
+      - "8083:80"
+    networks:
+      - lind_network
+    volumes:
+      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+
+
+  #lind_nginx_static:
+  #  build:
+  #    context: .
+  #    dockerfile: lind_nginx_static/Dockerfile
+  #  container_name: lind_nginx_static
+  #  ports:
+  #    - "80:80"
+  #  networks:
+  #    - lind_network
+
+networks:
+  lind_network:
+    driver: bridge
