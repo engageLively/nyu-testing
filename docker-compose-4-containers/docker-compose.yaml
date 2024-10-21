@@ -29,15 +29,15 @@ services:
     networks:
       - lind_network
 
-  lind_nginx_static:
-    build:
-      context: .
-      dockerfile: lind_nginx_static/Dockerfile
-    container_name: lind_nginx_static
-    ports:
-      - "80:80"
-    networks:
-      - lind_network
+  #lind_nginx_static:
+  #  build:
+  #    context: .
+  #    dockerfile: lind_nginx_static/Dockerfile
+  #  container_name: lind_nginx_static
+  #  ports:
+  #    - "80:80"
+  #  networks:
+  #    - lind_network
 
 networks:
   lind_network:
