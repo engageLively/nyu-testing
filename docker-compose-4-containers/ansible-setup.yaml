@@ -51,26 +51,42 @@
       poll: 0
 
     - name: Run wrk job inside lind plaintext container
-      command: >
-        docker exec lind_lamp_plaintext_container
+      command: >        
+        docker-compose exec lind_lamp_plaintext
         bash -c "cd /home/lind/lind_project && ./wrk_plaintext"
+      args:
+        chdir: /tmp/docker-compose-4-containers
       register: wrk_plaintext
 
-    - name: Run wrk job inside lind queries container
+    - name: Run wrk job inside lind plaintext container
       command: >
-        docker exec lind_lamp_plaintext_container
+        docker-compose exec lind_lamp_plaintext
+        bash -c "cd /home/lind/lind_project && ./wrk_plaintext"
+      args:
+        chdir: /tmp/docker-compose-4-containers
+      register: wrk_plaintext
+
+
+    - name: Run wrk job inside lind queries container
+      command: >        
+        docker-compose exec lind_lamp_plaintext
         bash -c "cd /home/lind/lind_project && ./wrk_queries"
+      args:
+        chdir: /tmp/docker-compose-4-containers
       register: wrk_queries
 
     - name: Run wrk job inside lind mixed container
-      command: >
-        docker exec lind_lamp_plaintext_container
+      command: >        
+        docker-compose exec lind_lamp_plaintext
         bash -c "cd /home/lind/lind_project && ./wrk_mixed"
+      args:
+        chdir: /tmp/docker-compose-4-containers
       register: wrk_mixed
 
     - name: Run wrk job inside lind nginx container
       command: >
-        docker exec lind_lamp_plaintext_container
+        cd /tmp/docker-compose-4-containers &&
+        docker-compose exec lind_lamp_plaintext
         bash -c "cd /home/lind/lind_project && ./wrk_nginx"
       register: wrk_nginx
 
