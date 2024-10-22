@@ -78,6 +78,8 @@
       command: >
         docker exec lind_lamp_nginx
         bash -c "cd /home/lind/lind_project && ./wrk_nginx.sh 1 10 lind"
+      args:
+        chdir: /tmp/docker-compose-4-containers
       register: wrk_nginx
 
     - name: Write output for wrk plaintext job
