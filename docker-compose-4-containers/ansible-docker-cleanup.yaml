@@ -6,6 +6,10 @@
       register: running_containers
       changed_when: false
 
+    - name: stop docker containers
+      shell: bash -c "docker-compose -f /tmp/docker-compose-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-4-containers down -v"
+      register: docker_build
+
     - name: Stop running containers
       shell: docker stop $(docker ps -q)
       when: running_containers.stdout | length > 0
