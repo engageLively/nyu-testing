@@ -1,4 +1,4 @@
-- hosts: b1,b2,b3,b4,b5,b6,b7,b8,b9,b10
+- hosts: a1,a2,a3,a4,a5,a6,a7,a8,a9,a10
   strategy: free
   become: true
   tasks:
@@ -9,15 +9,15 @@
 
     - name: Run install docker script
       shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
-      register: docker_install
+      register: docker_install    
 
     - name: Copy entire folder from host to remote node
       copy:
-        src: /project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers
+        src: /project/mhemmings/notebooks/nyu-testing/docker-compose-native-4-containers
         dest: /tmp/
         
     - name: Install libraries
-      shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
+      shell: bash /tmp/docker-compose-native-4-containers/install_libraries.sh
 
     - name: Create output directory if it does not exist
       file:
@@ -37,7 +37,7 @@
    
 
     - name: Build and start docker containers
-      shell: bash -c "docker-compose -f /tmp/docker-compose-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-4-containers up -d"
+      shell: bash -c "docker-compose -f /tmp/docker-compose-native-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-native-4-containers up -d --build"
       register: docker_build
 
     - name: Write docker build output to local file
@@ -50,35 +50,58 @@
       async: 0
       poll: 0
 
-    #- name: Run wrk job inside lind_benchmark container
-    #  command: >
-    #    docker exec lind_benchmark_container
-    #    bash -c "cd /home/lind/lind_project && ./wrk_lamp.sh 1 180 nat"
-    #  register: wrk_queries
+    - name: Run wrk job inside native plaintext container
+      command: >
+        docker exec native_lamp_plaintext
+        bash -c "cd /home/lind/lind_project && ./wrk_plaintext.sh 1 10 nat"        
+      args:
+        chdir: /tmp/docker-compose-native-4-containers
+      register: wrk_plaintext
 
-    #- name: Write output for wrk job
-    #  copy:
-    #    content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
-    #    dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_wrk.log"    
+    - name: Run wrk job inside native queries container
+      command: >        
+        docker exec native_lamp_queries
+        bash -c "cd /home/lind/lind_project && ./wrk_queries.sh 1 10 nat"
+      args:
+        chdir: /tmp/docker-compose-native-4-containers
+      register: wrk_queries
 
+    - name: Run wrk job inside native mixed container
+      command: >        
+        docker exec native_lamp_mixed
+        bash -c "cd /home/lind/lind_project && ./wrk_mixed.sh 1 10 nat"
+      args:
+        chdir: /tmp/docker-compose-native-4-containers
+      register: wrk_mixed
+
+    - name: Run wrk job inside native nginx container
+      command: >
+        docker exec native_lamp_nginx
+        bash -c "cd /home/lind/lind_project && ./wrk_nginx.sh 1 10 nat"
+      args:
+        chdir: /tmp/docker-compose-native-4-containers
+      register: wrk_nginx
+
+    - name: Write output for wrk plaintext job
+      copy:
+        content: "{{ wrk_plaintext.stdout }}\n{{ wrk_plaintext.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_plaintext_wrk.log"
+
+    - name: Write output for wrk mixed job
+      copy:
+        content: "{{ wrk_mixed.stdout }}\n{{ wrk_mixed.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_mixed_wrk.log"
+
+    - name: Write output for wrk queries job
+      copy:
+        content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_queries_wrk.log"
     
-
-    - name: Make the connectivity test script executable
-      command: chmod +x /tmp/docker-compose-4-containers/run_connectivity_tests.sh
+    - name: Write output for wrk nginx job
+      copy:
+        content: "{{ wrk_nginx.stdout }}\n{{ wrk_nginx.stderr }}"
+        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_nginx_wrk.log"    
     
-    - name: Run connectivity tests
-      command: /tmp/docker-compose-4-containers/run_connectivity_tests.sh
-      register: connectivity_var
-    
-    - name: Save connectivity test output to the controller
-      local_action: 
-        module: copy
-        content: "{{ connectivity_var.stdout }}"
-        dest: "/project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers/results/{{ ansible_hostname }}_connectivity_output.txt"
-        
-    - name: Stop playbook execution
-      meta: end_play
-
     - name: Create tar.gz archive of wrk output files
       archive:
         path: "/home/mhemmings/wrk-output/*"
@@ -88,15 +111,15 @@
     - name: Collect tarballs and organize by type of test
       fetch:
         src: "/tmp/wrk_output_{{ ansible_hostname }}.tar.gz"
-        dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers' }}--{{ ansible_hostname }}"
+        dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-native-4-containers' }}--{{ ansible_hostname }}"
       
     - name: Untar the collected tarball on the host machine
       command: >
-        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers' }}--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers' }}--{{ ansible_hostname }}
+        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-native-4-containers' }}--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-native-4-containers' }}--{{ ansible_hostname }}
       delegate_to: localhost
 
     - name: Bring down docker containers
-      shell: bash -c "docker-compose -f /tmp/docker-compose-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-4-containers down -v"
+      shell: bash -c "docker-compose -f /tmp/docker-compose-native-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-native-4-containers down -v"
 
     #- name: Stop running containers
     #  shell: docker stop $(docker ps -aq)
