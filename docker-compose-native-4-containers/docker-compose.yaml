@@ -10,8 +10,8 @@ services:
       ports:
         - "8081:80"
       command: >
-        cd /home/lind/lind_project/tests/lamp_stack/profiling/
-        ./nat_run_lamp.sh
+        /bin/bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling/ \
+        && ./nat_run_lamp.sh"
       networks:
         - lind_network
       volumes:
@@ -28,8 +28,8 @@ services:
       ports:
         - "8082:80"
       command: >
-        cd /home/lind/lind_project/tests/lamp_stack/profiling/
-        ./nat_run_lamp.sh
+        /bin/bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling/ \
+        && ./nat_run_lamp.sh"
       networks:
         - lind_network
       volumes:
@@ -46,8 +46,8 @@ services:
       ports:
         - "8083:80"
       command: >
-        cd cd /home/lind/lind_project/tests/lamp_stack/profiling/
-        ./nat_run_lamp.sh
+        /bin/bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling/ \
+        && ./nat_run_lamp.sh"
       networks:
         - lind_network
       volumes:
@@ -64,8 +64,8 @@ services:
       ports:
         - "8084:80"
       command: >
-        cd /home/lind/lind_project/tests/lamp_stack/profiling/
-        ./nat_run_nginx.sh
+        /bin/bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling/ \
+        && ./nat_run_nginx.sh"
       networks:
         - lind_network
       volumes:
