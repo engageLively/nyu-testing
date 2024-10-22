@@ -1,6 +1,10 @@
-- hosts: b1,b2,b3,b4,b5,b6,b7,b8,b9,b10
+- hosts: b1,b2,b3,b4,b5
   become: true
   tasks:
+
+    - name: Remove all files in /home/mhemmings/wrk-output/
+      shell: rm -r /home/mhemmings/wrk-output/*
+  
     - name: Stop all running containers if any are present
       shell: docker ps -q
       register: running_containers

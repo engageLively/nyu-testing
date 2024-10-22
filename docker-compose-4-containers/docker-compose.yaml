@@ -1,6 +1,6 @@
 services:
   #lind_lamp_plaintext:
-  #    image: securesystemslab/lind_ubuntu:lind_lamp_plaintext
+  #    image: securesystemslab/lind_ubuntu:lind_lamp_plaintext2
   #    container_name: lind_lamp_plaintext
   #    user: root
   #    privileged: true
@@ -16,25 +16,25 @@ services:
   #    volumes:
   #      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
 
-  lind_lamp_queries:
-      image: securesystemslab/lind_ubuntu:lind_lamp_queries
-      container_name: lind_lamp_queries
-      user: root
-      privileged: true
-      ipc: host
-      cap_add:
-        - SYS_PTRACE
-      ports:
-        - "8082:80"
-      command: >
-        lind /bin/bash lind_run_lamp.sh
-      networks:
-        - lind_network
-      volumes:
-        - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+  #lind_lamp_queries:
+  #    image: securesystemslab/lind_ubuntu:lind_lamp_queries2
+  #    container_name: lind_lamp_queries
+  #    user: root
+  #    privileged: true
+  #    ipc: host
+  #    cap_add:
+  #      - SYS_PTRACE
+  #    ports:
+  #      - "8082:80"
+  #    command: >
+  #      lind /bin/bash lind_run_lamp.sh
+  #    networks:
+  #      - lind_network
+  #    volumes:
+   #     - /home/mhemmings/wrk-output:/home/lind/lind_project/data
 
   #lind_lamp_mixed:
-  #    image: securesystemslab/lind_ubuntu:lind_lamp_mixed
+  #    image: securesystemslab/lind_ubuntu:lind_lamp_mixed2
   #    container_name: lind_lamp_mixed
   #    user: root
   #    privileged: true
@@ -50,22 +50,22 @@ services:
   #    volumes:
   #      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
 
-  #lind_lamp_nginx:
-  #    image: securesystemslab/lind_ubuntu:lind_lamp_nginx
-  #    container_name: lind_lamp_nginx
-  #    user: root
-  #    privileged: true
-  #    ipc: host
-  #    cap_add:
-  #      - SYS_PTRACE
-  #    ports:
-  #      - "8084:80"
-  #    command: >
-  #      lind /bin/bash lind_run_nginx.sh
-  #    networks:
-  #      - lind_network
-  #    volumes:
-  #      - /home/mhemmings/wrk-output:/home/lind/lind_project/data
+  lind_lamp_nginx:
+      image: securesystemslab/lind_ubuntu:lind_lamp_nginx
+      container_name: lind_lamp_nginx
+      user: root
+      privileged: true
+      ipc: host
+      cap_add:
+        - SYS_PTRACE
+      ports:
+        - "8084:80"
+      command: >
+        lind /bin/bash lind_run_nginx.sh
+      networks:
+        - lind_network
+      volumes:
+        - /home/mhemmings/wrk-output:/home/lind/lind_project/data
 
 
 
