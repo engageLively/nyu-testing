@@ -7,9 +7,9 @@
         src: /project/mhemmings/notebooks/get-docker.sh
         dest: /tmp/get-docker.sh        
 
-    - name: Run install docker script
-      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
-      register: docker_install    
+    #- name: Run install docker script
+    #  shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+    #  register: docker_install    
 
     - name: Copy entire folder from host to remote node
       copy:
@@ -36,24 +36,24 @@
         mode: '0755'
    
 
-    - name: Build and start docker containers
-      shell: bash -c "docker-compose -f /tmp/docker-compose-native-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-native-4-containers up -d --build"
-      register: docker_build
+    #- name: Build and start docker containers
+    #  shell: bash -c "docker-compose -f /tmp/docker-compose-native-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-native-4-containers up -d --build"
+    #  register: docker_build
 
-    - name: Write docker build output to local file
-      copy:
-        content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
-        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_{{ ansible_date_time.iso8601_basic }}_build.log"      
+    #- name: Write docker build output to local file
+    #  copy:
+    #    content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
+    #    dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_{{ ansible_date_time.iso8601_basic }}_build.log"      
 
-    - name: Wait for 2.5 minutes
-      shell: sleep 150
-      async: 0
-      poll: 0
+    #- name: Wait for 2.5 minutes
+    #  shell: sleep 150
+    #  async: 0
+    #  poll: 0
 
     - name: Run wrk job inside native plaintext container
       command: >
         docker exec native_lamp_plaintext
-        bash -c "cd /home/lind/lind_project && ./wrk_plaintext.sh 1 10 nat"        
+        bash -c "cd /home/lind/lind_project && ./wrk_plain.sh 1 10 nat"
       args:
         chdir: /tmp/docker-compose-native-4-containers
       register: wrk_plaintext

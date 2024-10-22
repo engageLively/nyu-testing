@@ -2,7 +2,7 @@ services:
   native_lamp_plaintext:
       image: securesystemslab/lind_ubuntu:native_lamp_plaintext
       container_name: native_lamp_plaintext
-      user: root
+      user: lind
       privileged: true
       ipc: host
       cap_add:
@@ -20,7 +20,7 @@ services:
   native_lamp_queries:
       image: securesystemslab/lind_ubuntu:native_lamp_queries
       container_name: native_lamp_queries
-      user: root
+      user: lind
       privileged: true
       ipc: host
       cap_add:
@@ -38,7 +38,7 @@ services:
   native_lamp_mixed:
       image: securesystemslab/lind_ubuntu:native_lamp_mixed
       container_name: native_lamp_mixed
-      user: root
+      user: lind
       privileged: true
       ipc: host
       cap_add:
@@ -56,7 +56,7 @@ services:
   native_lamp_nginx:
       image: securesystemslab/lind_ubuntu:native_nginx_static
       container_name: native_lamp_nginx
-      user: root
+      user: lind
       privileged: true
       ipc: host
       cap_add:
@@ -65,7 +65,7 @@ services:
         - "8084:80"
       command: >
         /bin/bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling/ \
-        && ./nat_run_nginx.sh"
+        && ./nat_run_nginx.sh && tail -f /dev/null"
       networks:
         - lind_network
       volumes:
