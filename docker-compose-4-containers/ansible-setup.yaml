@@ -1,7 +1,18 @@
-- hosts: b1,b2,b3,b4,b5,b6,b7,b8,b9,b10
+- hosts: b1,b2,b3,b4,b5
+#,b6,b7,b8,b9,b10
   strategy: free
   become: true
   tasks:
+    - name: check machines
+      shell: |
+        echo "CPUs: $(nproc)"
+        echo "Memory: $(free -g | awk '/^Mem:/{print $7}') GB"
+      register: machinecheck
+
+    - debug: msg="{{ machinecheck.stdout }}"
+
+    - debug: msg="{{ machinecheck.stderr }}"
+    
     - name: Copy install docker script
       copy:
         src: /project/mhemmings/notebooks/get-docker.sh
@@ -50,13 +61,13 @@
       async: 0
       poll: 0
 
-    - name: Run wrk job inside lind plaintext container
-      command: >
-        docker exec lind_lamp_plaintext
-        bash -c "cd /home/lind/lind_project && ./wrk_plaintext.sh 1 180 lind"        
-      args:
-        chdir: /tmp/docker-compose-4-containers
-      register: wrk_plaintext
+    #- name: Run wrk job inside lind plaintext container
+    #  command: >
+    #    docker exec lind_lamp_plaintext
+    #    bash -c "cd /home/lind/lind_project && ./wrk_plaintext.sh 1 180 lind"        
+    #  args:
+    #    chdir: /tmp/docker-compose-4-containers
+    #  register: wrk_plaintext
 
     - name: Run wrk job inside lind queries container
       command: >        
@@ -66,41 +77,41 @@
         chdir: /tmp/docker-compose-4-containers
       register: wrk_queries
 
-    - name: Run wrk job inside lind mixed container
-      command: >        
-        docker exec lind_lamp_mixed
-        bash -c "cd /home/lind/lind_project && ./wrk_mixed.sh 1 180 lind"
-      args:
-        chdir: /tmp/docker-compose-4-containers
-      register: wrk_mixed
+    #- name: Run wrk job inside lind mixed container
+    #  command: >        
+    #    docker exec lind_lamp_mixed
+    #    bash -c "cd /home/lind/lind_project && ./wrk_mixed.sh 1 180 lind"
+    #  args:
+    #    chdir: /tmp/docker-compose-4-containers
+    #  register: wrk_mixed
 
-    - name: Run wrk job inside lind nginx container
-      command: >
-        docker exec lind_lamp_nginx
-        bash -c "cd /home/lind/lind_project && ./wrk_nginx.sh 1 180 lind"
-      args:
-        chdir: /tmp/docker-compose-4-containers
-      register: wrk_nginx
+    #- name: Run wrk job inside lind nginx container
+    #  command: >
+    #    docker exec lind_lamp_nginx
+    #    bash -c "cd /home/lind/lind_project && ./wrk_nginx.sh 1 180 lind"
+    #  args:
+    #    chdir: /tmp/docker-compose-4-containers
+    #  register: wrk_nginx
 
-    - name: Write output for wrk plaintext job
-      copy:
-        content: "{{ wrk_plaintext.stdout }}\n{{ wrk_plaintext.stderr }}"
-        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_plaintext_wrk.log"
+    #- name: Write output for wrk plaintext job
+    #  copy:
+    #    content: "{{ wrk_plaintext.stdout }}\n{{ wrk_plaintext.stderr }}"
+    #    dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_plaintext_wrk.log"
 
-    - name: Write output for wrk mixed job
-      copy:
-        content: "{{ wrk_mixed.stdout }}\n{{ wrk_mixed.stderr }}"
-        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_mixed_wrk.log"
+    #- name: Write output for wrk mixed job
+    #  copy:
+    #    content: "{{ wrk_mixed.stdout }}\n{{ wrk_mixed.stderr }}"
+    #    dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_mixed_wrk.log"
 
     - name: Write output for wrk queries job
       copy:
         content: "{{ wrk_queries.stdout }}\n{{ wrk_queries.stderr }}"
         dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_queries_wrk.log"
     
-    - name: Write output for wrk nginx job
-      copy:
-        content: "{{ wrk_nginx.stdout }}\n{{ wrk_nginx.stderr }}"
-        dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_nginx_wrk.log"    
+    #- name: Write output for wrk nginx job
+    #  copy:
+    #    content: "{{ wrk_nginx.stdout }}\n{{ wrk_nginx.stderr }}"
+    #    dest: "/home/mhemmings/wrk-output/{{ ansible_hostname }}_nginx_wrk.log"    
     
     - name: Create tar.gz archive of wrk output files
       archive:
