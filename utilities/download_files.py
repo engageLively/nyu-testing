@@ -2,7 +2,7 @@ import gdown
 import time
 
 # File 1: lind_micro.tar.gz
-url_1 = "https://drive.google.com/uc?id=1cYxJdwsOvk0hX1W2GkZ7f4FY7IHkPkHJ"
+url_1 = "https://drive.google.com/uc?id=1UsIIQBpx2_EVQCle4Y9HaldZxu_0HFKM"
 output_1 = "/project/mhemmings/notebooks/nyu-testing/native_lamp_stack.tar.gz"
 max_retries = 10
 
