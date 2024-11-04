@@ -1,49 +1,55 @@
 - hosts: b1
   strategy: free
   become: true
+  vars:
+    run_initial_setup: true  # Toggle this to false to skip the initial setup block
+
   tasks:
-    - name: Check machines
-      shell: |
-        echo "CPUs: $(nproc)"
-        echo "Memory: $(free -g | awk '/^Mem:/{print $7}') GB"
-      register: machinecheck
+    - block:
+        - name: Check machines
+          shell: |
+            echo "CPUs: $(nproc)"
+            echo "Memory: $(free -g | awk '/^Mem:/{print $7}') GB"
+          register: machinecheck
 
-    - debug: msg="{{ machinecheck.stdout }}"
-    
-    - debug: msg="{{ machinecheck.stderr }}"
-
-    - name: Copy install docker script
-      copy:
-        src: /project/mhemmings/notebooks/get-docker.sh
-        dest: /tmp/get-docker.sh        
-
-    - name: Run install docker script
-      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
-      register: docker_install    
-
-    - name: Copy entire folder from host to remote node
-      copy:
-        src: /project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers
-        dest: /tmp/
+        - debug: msg="{{ machinecheck.stdout }}"
         
-    - name: Install libraries
-      shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
+        - debug: msg="{{ machinecheck.stderr }}"
 
-    - name: Create output directory if it does not exist
-      file:
-        path: /home/mhemmings/wrk-output
-        state: directory
+        - name: Copy install docker script
+          copy:
+            src: /project/mhemmings/notebooks/get-docker.sh
+            dest: /tmp/get-docker.sh        
 
-    - name: Set ownership of /home/mhemmings/wrk-output
-      file:
-        path: /home/mhemmings/wrk-output
-        owner: 1000
-        group: 1000
+        - name: Run install docker script
+          shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+          register: docker_install    
 
-    - name: Set permissions of /home/mhemmings/wrk-output to 755
-      file:
-        path: /home/mhemmings/wrk-output
-        mode: '0755'
+        - name: Copy entire folder from host to remote node
+          copy:
+            src: /project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers
+            dest: /tmp/
+            
+        - name: Install libraries
+          shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
+
+        - name: Create output directory if it does not exist
+          file:
+            path: /home/mhemmings/wrk-output
+            state: directory
+
+        - name: Set ownership of /home/mhemmings/wrk-output
+          file:
+            path: /home/mhemmings/wrk-output
+            owner: 1000
+            group: 1000
+
+        - name: Set permissions of /home/mhemmings/wrk-output to 755
+          file:
+            path: /home/mhemmings/wrk-output
+            mode: '0755'
+      
+      when: run_initial_setup  # This will execute the block only if run_initial_setup is true
 
     - name: Run full workflow in a loop
       block:
