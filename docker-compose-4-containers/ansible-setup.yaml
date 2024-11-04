@@ -15,38 +15,43 @@
 
     
     
-    ##- name: Copy install docker script
-    ##  copy:
-    ##    src: /project/mhemmings/notebooks/get-docker.sh
-    ##    dest: /tmp/get-docker.sh        
+    - name: Copy install docker script
+      copy:
+        src: /project/mhemmings/notebooks/get-docker.sh
+        dest: /tmp/get-docker.sh        
 
-    ##- name: Run install docker script
-    ##  shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
-    ##  register: docker_install    
+    - name: Run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install    
 
     - name: Copy entire folder from host to remote node
       copy:
         src: /project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers
         dest: /tmp/
         
-    ##- name: Install libraries
-    ##  shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
+    - name: Install libraries
+      shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
 
-    ##- name: Create output directory if it does not exist
-    ##  file:
-    ##   path: /home/mhemmings/wrk-output
-    ##   state: directory
+    - name: Create output directory if it does not exist
+      file:
+       path: /home/mhemmings/wrk-output
+       state: directory
     
-    ##- name: Set ownership of /home/mhemmings/wrk-output
-    ##  file:
-    ##    path: /home/mhemmings/wrk-output
-    ##    owner: 1000
-    ##    group: 1000
+    - name: Set ownership of /home/mhemmings/wrk-output
+      file:
+        path: /home/mhemmings/wrk-output
+        owner: 1000
+        group: 1000
     
-    ##- name: Set permissions of /home/mhemmings/wrk-output to 755
-    ##  file:
-    ##    path: /home/mhemmings/wrk-output
-    ##    mode: '0755'
+    - name: Set permissions of /home/mhemmings/wrk-output to 755
+      file:
+        path: /home/mhemmings/wrk-output
+        mode: '0755'
+
+    - name: Remove all contents from /home/mhemmings/wrk-output
+      shell: rm -rf /home/mhemmings/wrk-output/*
+      args:
+        warn: false
 
     - name: Build and start docker containers
       shell: bash -c "docker-compose -f /tmp/docker-compose-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-4-containers up -d --build"
@@ -65,7 +70,7 @@
     #- name: Run wrk job inside lind plaintext container
     #  command: >
     #    docker exec lind_lamp_plaintext
-    #    bash -c "cd /home/lind/lind_project && ./wrk_plaintext.sh 1 180 lind"        
+    #    bash -c "cd /home/lind/lind_project && ./wrk_plaintext.sh 1 300 lind"        
     #  args:
     #    chdir: /tmp/docker-compose-4-containers
     #  register: wrk_plaintext
@@ -73,26 +78,26 @@
     #- name: Run wrk job inside lind queries container
     #  command: >        
     #    docker exec lind_lamp_queries
-    #    bash -c "cd /home/lind/lind_project && ./wrk_queries.sh 1 180 lind"
+    #    bash -c "cd /home/lind/lind_project && ./wrk_queries.sh 1 600 lind"
     #  args:
     #    chdir: /tmp/docker-compose-4-containers
     #  register: wrk_queries
 
-    ##- name: Run wrk job inside lind mixed container
-    ##  command: >        
-    ##    docker exec lind_lamp_mixed
-    ##    bash -c "cd /home/lind/lind_project && ./wrk_mixed.sh 1 180 lind"
-    ##  args:
-    ##    chdir: /tmp/docker-compose-4-containers
-    ##  register: wrk_mixed
-
-    - name: Run wrk job inside lind nginx container
-      command: >
-        docker exec lind_lamp_nginx
-        bash -c "cd /home/lind/lind_project && ./wrk_nginx.sh 1 180 lind"
+    - name: Run wrk job inside lind mixed container
+      command: >        
+        docker exec lind_lamp_mixed
+        bash -c "cd /home/lind/lind_project && ./wrk_mixed.sh 1 300 lind"
       args:
         chdir: /tmp/docker-compose-4-containers
-      register: wrk_nginx
+      register: wrk_mixed
+
+    #- name: Run wrk job inside lind nginx container
+    #  command: >
+    #    docker exec lind_lamp_nginx
+    #    bash -c "cd /home/lind/lind_project && ./wrk_nginx.sh 1 600 lind"
+    #  args:
+    #    chdir: /tmp/docker-compose-4-containers
+    #  register: wrk_nginx
 
     #- name: Write output for wrk plaintext job
     #  copy:
@@ -123,11 +128,11 @@
     - name: Collect tarballs and organize by type of test
       fetch:
         src: "/tmp/wrk_output_{{ ansible_hostname }}.tar.gz"
-        dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers' }}--{{ ansible_hostname }}"
+        dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers-300-seconds' }}--{{ ansible_hostname }}"
       
     - name: Untar the collected tarball on the host machine
       command: >
-        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers' }}--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers' }}--{{ ansible_hostname }}
+        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers-300-seconds' }}--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'docker-compose-4-containers-300-seconds' }}--{{ ansible_hostname }}
       delegate_to: localhost
 
     - name: Bring down docker containers
