@@ -2,13 +2,56 @@
   strategy: free
   become: true
   tasks:
+    - name: Check machines
+      shell: |
+        echo "CPUs: $(nproc)"
+        echo "Memory: $(free -g | awk '/^Mem:/{print $7}') GB"
+      register: machinecheck
+
+    - debug: msg="{{ machinecheck.stdout }}"
+    
+    - debug: msg="{{ machinecheck.stderr }}"
+
+    - name: Copy install docker script
+      copy:
+        src: /project/mhemmings/notebooks/get-docker.sh
+        dest: /tmp/get-docker.sh        
+
+    - name: Run install docker script
+      shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+      register: docker_install    
+
+    - name: Copy entire folder from host to remote node
+      copy:
+        src: /project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers
+        dest: /tmp/
+        
+    - name: Install libraries
+      shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
+
+    - name: Create output directory if it does not exist
+      file:
+        path: /home/mhemmings/wrk-output
+        state: directory
+
+    - name: Set ownership of /home/mhemmings/wrk-output
+      file:
+        path: /home/mhemmings/wrk-output
+        owner: 1000
+        group: 1000
+
+    - name: Set permissions of /home/mhemmings/wrk-output to 755
+      file:
+        path: /home/mhemmings/wrk-output
+        mode: '0755'
+
     - name: Run full workflow in a loop
       block:
         - name: Generate unique timestamp for this iteration
           command: date +%Y%m%d%H%M%S
           register: unique_timestamp
           delegate_to: localhost
-          
+
         - name: Remove all contents from /home/mhemmings/wrk-output
           shell: rm -rf /home/mhemmings/wrk-output/*
           args:
