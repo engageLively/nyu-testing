@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: b2,b3,b4,b5,b6,b7,b8,b9,b10
   strategy: free
   become: true
   tasks:

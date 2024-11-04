@@ -9,37 +9,37 @@
   vars_files:
     - native_lind_bare_metal_fullstack_vars.yaml
 
-
   tasks:
-    #- debug:
-    #    var: native_lind_bare_metal_fullstack_vars
+    - debug:
+        var: native_lind_bare_metal_fullstack_vars
         
-    #- name: Install libraries on remote node using libraries.sh
-    #  script: libraries.sh
+    - name: Install libraries on remote node using libraries.sh
+      script: libraries.sh
 
-    #- name: Remove all contents of /tmp/lind_project but keep the directory
-    #  shell: |
-    #    rm -rf /tmp/*
-    #    if [ ! -d /tmp ]; then
-    #      mkdir -p /tmp
-    #    fi
+    - name: Remove all contents of /home/mhemmings/lind but keep the directory
+      shell: |
+        rm -rf /home/mhemmings/lind/*
+        if [ ! -d /home/mhemmings/lind ]; then
+          mkdir -p /home/mhemmings/lind
+        fi
         
-    #- name: Ensure /tmp/data directory exists
-    #  file:
-    #    path: /tmp/data
-    #    state: directory
-    #    mode: '0755'
+    - name: Ensure /home/mhemmings/lind/data directory exists
+      file:
+        path: /home/mhemmings/lind/data
+        state: directory
+        mode: '0755'
         
-    #- name: Copy native_lind_bare_metal_pgbench script file
-    #  copy:
-    #    src: "{{ native_lind_bare_metal_fullstack_vars.script_file_location }}"
-    #    dest: "/tmp/lind.tar.gz"
+    - name: Copy native_lind_bare_metal_pgbench script file
+      copy:
+        src: "{{ native_lind_bare_metal_fullstack_vars.script_file_location }}"
+        dest: "/home/mhemmings/lind/lind.tar.gz"
         
-    #- name: Untar the file
-    #  unarchive:
-    #    src: "/tmp/lind.tar.gz"
-    #    dest: "/tmp/"
-    #    remote_src: yes
+    - name: Untar the file
+      unarchive:
+        src: "/home/mhemmings/lind/lind.tar.gz"
+        dest: "/home/mhemmings/lind/"
+        remote_src: yes
+    
     - name: Reboot the machine
       reboot:
         reboot_timeout: 300  # Timeout in seconds to wait for the machine to reboot
@@ -76,8 +76,6 @@
       async: 30                # Adjust the time as necessary
       poll: 0                  # Do not wait for the command to finish
       ignore_errors: yes
-
-    
 
     - name: Wait for server to be up
       uri:
@@ -137,38 +135,38 @@
 
     - name: Ensure wrk_lamp.sh is executable
       file:
-        path: /tmp/lind_project/wrk_lamp.sh
+        path: /home/mhemmings/lind/wrk_lamp.sh
         mode: '0755'
 
     - name: Execute wrk_lamp.sh script
-      shell: "cd /tmp/lind_project && ./wrk_lamp.sh 1 10 lind"
+      shell: "cd /home/mhemmings/lind && ./wrk_lamp.sh 1 10 lind"
       register: wrk_output
       ignore_errors: yes
 
-    - name: Write output to /tmp/data/wrk.log
+    - name: Write output to /home/mhemmings/lind/data/wrk.log
       copy:
         content: "{{ wrk_output.stdout }}\n{{ wrk_output.stderr }}"
-        dest: /tmp/data/wrk.log
+        dest: /home/mhemmings/lind/data/wrk.log
         mode: '0644'
 
-    - name: Copy files from /tmp/lind_project/data to /tmp/data on the remote host
-      shell: cp -r /tmp/lind_project/data/* /tmp/data/
-      ignore_errors: yes
+    #- name: Copy files from /home/mhemmings/lind/data to /home/mhemmings/lind/data on the remote host
+    #  shell: cp -r /home/mhemmings/lind/data/* /home/mhemmings/lind/data/
+    #  ignore_errors: yes
 
     - name: Create tar.gz archive of the data directory for buffer_allocation
       archive:
         path: "{{ native_lind_bare_metal_fullstack_vars.output_file_location }}"
-        dest: /tmp/lind_project/data.tar.gz
+        dest: /home/mhemmings/lind/data.tar.gz
         format: gz
 
     - name: Collect tarballs and organize by type of test
       fetch:
-        src: /tmp/lind_project/data.tar.gz
+        src: /home/mhemmings/lind/data.tar.gz
         dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_fullstack' }}--{{ ansible_hostname }}"
 
     - name: Untar the collected tarball on the host machine
       command: >
-        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_fullstack' }}--{{ ansible_hostname }}/{{ ansible_hostname}}/tmp/lind_project/data.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_fullstack' }}--{{ ansible_hostname }}/
+        tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_fullstack' }}--{{ ansible_hostname }}/{{ ansible_hostname}}/home/mhemmings/lind/data.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}--{{ 'native_lind_bare_metal_fullstack' }}--{{ ansible_hostname }}/
       delegate_to: localhost
 
     #- name: Reboot the remote machine
