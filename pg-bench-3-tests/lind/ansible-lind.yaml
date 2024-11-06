@@ -27,11 +27,11 @@
 
         - name: Copy entire folder from host to remote node
           copy:
-            src: /project/mhemmings/notebooks/nyu-testing/docker-compose-4-containers
+            src: /project/mhemmings/notebooks/nyu-testing/pg-bench-3-tests/lind
             dest: /tmp/
             
         - name: Install libraries
-          shell: bash /tmp/docker-compose-4-containers/install_libraries.sh
+          shell: bash /tmp/lind/install_libraries.sh
 
         - name: Create output directory if it does not exist
           file:
@@ -64,7 +64,7 @@
             warn: false
 
         - name: Build and start docker containers
-          shell: bash -c "docker-compose -f /tmp/docker-compose-4-containers/docker-compose.yaml --project-directory /tmp/docker-compose-4-containers up -d --build"
+          shell: bash -c "docker-compose -f /tmp/lind/docker-compose.yaml --project-directory /tmp/lind up -d --build"
           register: docker_build
 
         - name: Write docker build output to local file
@@ -86,15 +86,15 @@
         - name: Collect tarballs and organize by type of test
           fetch:
             src: "/tmp/output_{{ ansible_hostname }}_{{ unique_timestamp.stdout }}.tar.gz"
-            dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--docker-compose-4-containers-300-seconds--{{ ansible_hostname }}"
+            dest: "/project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-lind--{{ ansible_hostname }}"
 
         - name: Untar the collected tarball on the host machine
           command: >
-            tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--docker-compose-4-containers-300-seconds--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}_{{ unique_timestamp.stdout }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--docker-compose-4-containers-300-seconds--{{ ansible_hostname }}
+            tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-lind--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}_{{ unique_timestamp.stdout }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-lind--{{ ansible_hostname }}
           delegate_to: localhost
 
         - name: Bring down docker containers
-          shell: bash -c "docker-compose -f /tmp/lind/docker-compose.yaml --project-directory /tmp/docker-compose-4-containers down -v"
+          shell: bash -c "docker-compose -f /tmp/lind/docker-compose.yaml --project-directory /tmp/lind down -v"
 
         #- name: Pause for 30 seconds before the next iteration
         #  pause:
