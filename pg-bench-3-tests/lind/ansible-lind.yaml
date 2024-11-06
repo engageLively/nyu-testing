@@ -2,7 +2,7 @@
   strategy: free
   become: true
   vars:
-    run_initial_setup: true  # Toggle this to false to skip the initial setup block
+    run_initial_setup: false  # Toggle this to false to skip the initial setup block
 
   tasks:
     - block:
@@ -90,7 +90,7 @@
 
         - name: Untar the collected tarball on the host machine
           command: >
-            tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-lind--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/wrk_output_{{ ansible_hostname }}_{{ unique_timestamp.stdout }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-lind--{{ ansible_hostname }}
+            tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-lind--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/output_{{ ansible_hostname }}_{{ unique_timestamp.stdout }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-lind--{{ ansible_hostname }}
           delegate_to: localhost
 
         - name: Bring down docker containers
