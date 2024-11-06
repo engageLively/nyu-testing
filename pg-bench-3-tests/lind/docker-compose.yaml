@@ -1,0 +1,22 @@
+services:
+  lind_lamp_mixed:
+    image: securesystemslab/lind_ubuntu:pgbench-native
+    container_name: pgbench-native
+    user: root
+    privileged: true
+    ipc: host
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - "8083:80"
+    command: >
+      cd tests/lamp_stack/pgbench/scripts/
+      ./grab_raw_pg.sh 10
+    networks:
+      - lind_network
+    volumes: #Verify that this folder is empty, else the test may need adjusting
+      - /home/mhemmings/output:/home/lind/lind_project/tests/lamp_stack/pgbench/scripts
+
+networks:
+  lind_network:
+    driver: bridge
