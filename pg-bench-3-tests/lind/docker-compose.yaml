@@ -2,7 +2,7 @@ services:
   lind_lamp_mixed:
     image: securesystemslab/lind_ubuntu:lind-pgbench-docker
     container_name: lind-pgbench
-    user: root
+    user: lind
     privileged: true
     ipc: host
     cap_add:
@@ -10,7 +10,7 @@ services:
     ports:
       - "8083:80"
     command: >
-      "cd /home/lind/lind_project/tests/lamp_stack/pgbench/scripts && ./grab_lind_pg.sh 5 2>&1 | tee /tmp/data/run.log && cp /home/lind/lind_project/tests/lamp_stack/pgbench/scripts/tps_data.json /tmp/data"      
+        bash -c "cd /home/lind/lind_project/tests/lamp_stack/pgbench/scripts && ./grab_lind_pg.sh 5 2>&1 | tee /tmp/data/run.log && cp /home/lind/lind_project/tests/lamp_stack/pgbench/scripts/tps_data.json /tmp/data"    
     networks:
       - lind_network
     volumes: #Verify that this folder is empty, else the test may need adjusting
