@@ -1,0 +1,21 @@
+services:
+  lind_lamp_mixed:
+    image:  securesystemslab/lind:lind_ubuntu:lind_pypgbench
+    container_name: native-pypgbench
+    user: lind
+    privileged: true
+    ipc: host
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - "8083:80"
+    command: >
+        bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling && ./nat_pgbench.sh > nat_pypgbench_data.json && cp /home/lind/lind_project/tests/lamp_stack/profiling/nat_pypgbench_data.json /tmp/data"
+    networks:
+      - lind_network
+    volumes: #Verify that this folder is empty, else the test may need adjusting
+      - /home/mhemmings/output:/tmp/data
+
+networks:
+  lind_network:
+    driver: bridge
