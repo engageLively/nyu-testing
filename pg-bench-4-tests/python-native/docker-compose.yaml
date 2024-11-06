@@ -1,6 +1,6 @@
 services:
   lind_lamp_mixed:
-    image:  securesystemslab/lind:lind_ubuntu:lind_pypgbench
+    image:  securesystemslab/lind_ubuntu:lind_pypgbench
     container_name: native-pypgbench
     user: lind
     privileged: true
