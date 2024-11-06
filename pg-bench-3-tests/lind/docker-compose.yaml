@@ -10,7 +10,7 @@ services:
     ports:
       - "8083:80"
     command: >
-      "cd /tmp/lind_project && source general.sh && ./grab_lind_pg.sh 5 2>&1 | tee /tmp/data/run.log && cp /tmp/lind_project/tps_data.json /tmp/data"      
+      "cd /home/lind/lind_project/tests/lamp_stack/pgbench/scripts && ./grab_lind_pg.sh 5 2>&1 | tee /tmp/data/run.log && cp /home/lind/lind_project/tests/lamp_stack/pgbench/scripts/tps_data.json /tmp/data"      
     networks:
       - lind_network
     volumes: #Verify that this folder is empty, else the test may need adjusting
