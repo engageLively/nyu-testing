@@ -1,0 +1,21 @@
+services:
+  lind_lamp_mixed:
+    image: securesystemslab/lind_ubuntu:rawposix-pgbench
+    container_name: rawposix-pgbench
+    user: lind
+    privileged: true
+    ipc: host
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - "8083:80"
+    command: >        
+        bash -c "cd /home/lind/lind_project/tests/lamp_stack/pgbench/scripts && ./grab_raw_output.sh 5 2>&1 | tee /tmp/data/run.log && cp /home/lind/lind_project/tests/lamp_stack/pgbench/scripts/tps_data.json /tmp/data"
+    networks:
+      - lind_network
+    volumes: #Verify that this folder is empty, else the test may need adjusting
+      - /home/mhemmings/output:/tmp/data
+
+networks:
+  lind_network:
+    driver: bridge
