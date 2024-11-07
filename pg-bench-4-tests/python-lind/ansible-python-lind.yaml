@@ -77,13 +77,23 @@
             content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
             dest: "/home/mhemmings/output/{{ ansible_hostname }}_{{ unique_timestamp.stdout }}_build.log"
 
-        - name: Wait for lind_pypgbench_data.json to contain 'DONE'
+        - name: Check if 'DONE' is in the file and wait for it
           wait_for:
             path: /tmp/data/lind_pypgbench_data.json
             search_regex: "DONE"
             delay: 600          # check every 10 minutes
             timeout: 10800      # wait up to 3 hours
-          register: wait_for_result        
+          register: wait_for_result
+
+        - name: Log all output to run.log
+          copy:
+            content: |
+              "Wait for result status: {{ wait_for_result.state }}"
+              "Stdout: {{ wait_for_result.stdout }}"
+              "Stderr: {{ wait_for_result.stderr }}"
+            dest: /home/mhemmings/output/run.log
+            append: no
+            mode: '0644'        
 
         - name: Wait for 2.5 minutes
           shell: sleep 150
