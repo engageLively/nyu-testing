@@ -109,10 +109,10 @@
         - name: Bring down docker containers
           shell: bash -c "docker-compose -f /tmp/python-lind/docker-compose.yaml --project-directory /tmp/python-lind down -v"
 
-        #- name: Pause for 30 seconds before the next iteration
-        #  pause:
-        #    seconds: 30
+        - name: Pause for 30 seconds before the next iteration
+          pause:
+            seconds: 30
 
-      #loop: "{{ range(1, 4) | list }}"  # Adjust the range to set the number of iterations
-      #loop_control:
-      #  label: "Full workflow iteration {{ item }}"
+      loop: "{{ range(1, 4) | list }}"  # Adjust the range to set the number of iterations
+      loop_control:
+        label: "Full workflow iteration {{ item }}"
