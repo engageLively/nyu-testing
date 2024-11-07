@@ -1,5 +1,5 @@
 - name: Clean up docker between runs
-  hosts: b1,b2
+  hosts: a1,b1
   become: true
   tasks:
     
