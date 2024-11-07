@@ -1,0 +1,25 @@
+- name: Clean up docker between runs
+  hosts: b1,b2
+  become: true
+  tasks:
+    
+    - name: Stop all running containers (if any are present)
+      shell: |
+        docker ps -q | xargs -r docker stop
+      ignore_errors: true  # Continue if there are no running containers
+      register: stop_containers_output
+
+    - name: Remove all stopped containers
+      shell: |
+        docker container prune -f
+      when: stop_containers_output is not failed
+
+    - name: Remove Docker build cache
+      shell: |
+        docker builder prune -af
+      ignore_errors: true
+
+    - name: Remove all Docker images
+      shell: |
+        docker images -q | xargs -r docker rmi -f
+      ignore_errors: true
