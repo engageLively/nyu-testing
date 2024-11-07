@@ -80,7 +80,7 @@
         - name: Check if 'DONE' is in the file and wait for it
           wait_for:
             path: /tmp/data/lind_pypgbench_data.json
-            search_regex: "DONE"
+            search_regex: "DONE|stack backtrace:"
             delay: 600          # check every 10 minutes
             timeout: 10800      # wait up to 3 hours
           register: wait_for_result
