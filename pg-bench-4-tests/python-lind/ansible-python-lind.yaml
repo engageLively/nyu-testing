@@ -72,19 +72,18 @@
           async: 0
           poll: 0
 
+        - name: Write docker build output to local file
+          copy:
+            content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
+            dest: "/home/mhemmings/output/{{ ansible_hostname }}_{{ unique_timestamp.stdout }}_build.log"
+
         - name: Wait for lind_pypgbench_data.json to contain 'DONE'
           wait_for:
             path: /tmp/data/lind_pypgbench_data.json
             search_regex: "DONE"
             delay: 600          # check every 10 minutes
             timeout: 10800      # wait up to 3 hours
-          register: wait_for_result
-
-
-        - name: Write docker build output to local file
-          copy:
-            content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
-            dest: "/home/mhemmings/output/{{ ansible_hostname }}_{{ unique_timestamp.stdout }}_build.log"
+          register: wait_for_result        
 
         - name: Wait for 2.5 minutes
           shell: sleep 150
@@ -104,7 +103,7 @@
 
         - name: Untar the collected tarball on the host machine
           command: >
-            tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-python-lind--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/output_{{ ansible_hostname }}_{{ unique_timestamp.stdout }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-python-native--{{ ansible_hostname }}
+            tar -xzf /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-python-lind--{{ ansible_hostname }}/{{ ansible_hostname }}/tmp/output_{{ ansible_hostname }}_{{ unique_timestamp.stdout }}.tar.gz -C /project/mhemmings/notebooks/lind-ipc-data/sphere-data/{{ unique_timestamp.stdout }}--pg-bench-python-lind--{{ ansible_hostname }}
           delegate_to: localhost
 
         - name: Bring down docker containers
