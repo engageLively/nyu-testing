@@ -12,12 +12,15 @@ declare -A playbooks=(
     ["raw-posix"]="ansible-raw-posix.yaml"
 )
 
+# Track failures
+failures=()
+
 # Loop through each directory and run the playbook
 for dir in "${!playbooks[@]}"; do
     playbook="${playbooks[$dir]}"
     
     # Change to the directory
-    cd "$ROOT_DIR/$dir" || { echo "Failed to enter directory $ROOT_DIR/$dir"; exit 1; }
+    cd "$ROOT_DIR/$dir" || { echo "Failed to enter directory $ROOT_DIR/$dir"; failures+=("$dir"); continue; }
     
     # Run the Ansible playbook
     echo "Running playbook $playbook in $dir"
@@ -26,11 +29,20 @@ for dir in "${!playbooks[@]}"; do
     # Check if the playbook ran successfully
     if [[ $? -ne 0 ]]; then
         echo "Playbook $playbook in $dir failed"
-        exit 1
+        failures+=("$dir")
     fi
     
     # Return to the root directory
     cd "$ROOT_DIR" || exit 1
 done
 
-echo "All playbooks completed successfully."
+# Display results
+echo "All playbooks completed."
+if [ ${#failures[@]} -ne 0 ]; then
+    echo "The following playbooks failed:"
+    for failed_dir in "${failures[@]}"; do
+        echo "- $failed_dir"
+    done
+else
+    echo "All playbooks ran successfully."
+fi
