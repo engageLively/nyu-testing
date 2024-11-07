@@ -3,9 +3,9 @@
   become: true
   tasks:
     - name: Copy install docker script
-          copy:
-            src: /project/mhemmings/notebooks/get-docker.sh
-            dest: /tmp/get-docker.sh        
+      copy:
+        src: /project/mhemmings/notebooks/get-docker.sh
+        dest: /tmp/get-docker.sh        
 
     - name: Run install docker script
       shell: bash /tmp/get-docker.sh 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
