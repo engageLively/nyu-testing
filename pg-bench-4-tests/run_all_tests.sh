@@ -10,10 +10,10 @@ log_file="$ROOT_DIR/test_run_$timestamp.log"
 # List of subdirectories with their corresponding playbooks
 declare -A playbooks=(
     ["lind"]="ansible-lind.yaml"
-    #["native"]="ansible-native.yaml"
-    #["python-lind"]="ansible-python-lind.yaml"
-    #["python-native"]="ansible-python-native.yaml"
-    #["raw-posix"]="ansible-raw-posix.yaml"
+    ["native"]="ansible-native.yaml"
+    ["python-lind"]="ansible-python-lind.yaml"
+    ["python-native"]="ansible-python-native.yaml"
+    ["raw-posix"]="ansible-raw-posix.yaml"
 )
 
 failures=()
