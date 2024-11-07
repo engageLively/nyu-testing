@@ -29,15 +29,6 @@ fi
 {
     echo "Starting test run at $(date)"
     
-    # Run docker-cleanup.yaml playbook before any other tests
-    echo "Running docker cleanup playbook (initial)"
-    docker_cleanup_output=$(ansible-playbook "$ROOT_DIR/docker-cleanup.yaml" 2>&1)
-    echo "$docker_cleanup_output"
-    if [[ $? -ne 0 ]]; then
-        echo "Docker cleanup failed at the start"
-        failures+=("docker-cleanup (initial)")
-    fi
-    
     # Loop n times (or once by default)
     for i in $(seq 1 "$iterations"); do
         echo "Iteration $i of $iterations"
