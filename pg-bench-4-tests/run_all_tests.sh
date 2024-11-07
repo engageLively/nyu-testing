@@ -18,6 +18,14 @@ declare -A playbooks=(
 
 failures=()
 
+# Set default number of iterations to 1
+iterations=1
+
+# Check if the optional argument for loop count is provided
+if [[ ! -z "$1" ]]; then
+    iterations=$1
+fi
+
 {
     echo "Starting test run at $(date)"
     
@@ -30,38 +38,43 @@ failures=()
         failures+=("docker-cleanup (initial)")
     fi
     
-    for dir in "${!playbooks[@]}"; do
-        playbook="${playbooks[$dir]}"
+    # Loop n times (or once by default)
+    for i in $(seq 1 "$iterations"); do
+        echo "Iteration $i of $iterations"
         
-        # Run docker-cleanup.yaml before each individual playbook
-        echo "Running docker cleanup playbook before $playbook"
-        docker_cleanup_output=$(ansible-playbook "$ROOT_DIR/docker-cleanup.yaml" 2>&1)
-        echo "$docker_cleanup_output"
-        if [[ $? -ne 0 ]]; then
-            echo "Docker cleanup failed before $playbook"
-            failures+=("$playbook (docker cleanup)")
-        fi
-        
-        # Change to the directory
-        cd "$ROOT_DIR/$dir" || { 
-            echo "Failed to enter directory $ROOT_DIR/$dir" 
-            failures+=("$dir")
-            continue 
-        }
-        
-        # Run the main Ansible playbook and capture output
-        echo "Running playbook $playbook in $dir"
-        playbook_output=$(ansible-playbook "$playbook" 2>&1)
-        echo "$playbook_output"
-        
-        # Check if the playbook ran successfully
-        if [[ $? -ne 0 ]]; then
-            echo "Playbook $playbook in $dir failed"
-            failures+=("$dir")
-        fi
-        
-        # Return to the root directory
-        cd "$ROOT_DIR" || exit 1
+        for dir in "${!playbooks[@]}"; do
+            playbook="${playbooks[$dir]}"
+            
+            # Run docker-cleanup.yaml before each individual playbook
+            echo "Running docker cleanup playbook before $playbook"
+            docker_cleanup_output=$(ansible-playbook "$ROOT_DIR/docker-cleanup.yaml" 2>&1)
+            echo "$docker_cleanup_output"
+            if [[ $? -ne 0 ]]; then
+                echo "Docker cleanup failed before $playbook"
+                failures+=("$playbook (docker cleanup)")
+            fi
+            
+            # Change to the directory
+            cd "$ROOT_DIR/$dir" || { 
+                echo "Failed to enter directory $ROOT_DIR/$dir" 
+                failures+=("$dir")
+                continue 
+            }
+            
+            # Run the main Ansible playbook and capture output
+            echo "Running playbook $playbook in $dir"
+            playbook_output=$(ansible-playbook "$playbook" 2>&1)
+            echo "$playbook_output"
+            
+            # Check if the playbook ran successfully
+            if [[ $? -ne 0 ]]; then
+                echo "Playbook $playbook in $dir failed"
+                failures+=("$dir")
+            fi
+            
+            # Return to the root directory
+            cd "$ROOT_DIR" || exit 1
+        done
     done
 
     # Display results
