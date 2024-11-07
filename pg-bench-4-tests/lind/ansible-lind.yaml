@@ -2,7 +2,7 @@
   strategy: free
   become: true
   vars:
-    run_initial_setup: false  # Toggle this to false to skip the initial setup block
+    run_initial_setup: true  # Toggle this to false to skip the initial setup block
 
   tasks:
     - block:
