@@ -27,7 +27,7 @@
 
         - name: Copy entire folder from host to remote node
           copy:
-            src: /project/mhemmings/notebooks/nyu-testing/pg-bench-3-tests/raw-posix
+            src: /project/mhemmings/notebooks/nyu-testing/pg-bench-4-tests/raw-posix
             dest: /tmp/
             
         - name: Install libraries
