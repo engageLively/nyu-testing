@@ -64,9 +64,7 @@
             warn: false
 
         - name: Start Docker Compose asynchronously
-          shell: "docker-compose -f /tmp/python-native/docker-compose.yaml --project-directory /tmp/python-native up -d --build"
-          async: 3600
-          poll: 0
+          shell: "docker-compose -f /tmp/python-native/docker-compose.yaml --project-directory /tmp/python-native up -d --build"          
           register: docker_build
 
         - name: Wait for 2.5 minutes
