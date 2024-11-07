@@ -23,14 +23,24 @@ failures=()
     
     # Run docker-cleanup.yaml playbook before any other tests
     echo "Running docker cleanup playbook (initial)"
-    ansible-playbook "$ROOT_DIR/docker-cleanup.yaml"
+    docker_cleanup_output=$(ansible-playbook "$ROOT_DIR/docker-cleanup.yaml" 2>&1)
+    echo "$docker_cleanup_output"
+    if [[ $? -ne 0 ]]; then
+        echo "Docker cleanup failed at the start"
+        failures+=("docker-cleanup (initial)")
+    fi
     
     for dir in "${!playbooks[@]}"; do
         playbook="${playbooks[$dir]}"
         
         # Run docker-cleanup.yaml before each individual playbook
         echo "Running docker cleanup playbook before $playbook"
-        ansible-playbook "$ROOT_DIR/docker-cleanup.yaml"
+        docker_cleanup_output=$(ansible-playbook "$ROOT_DIR/docker-cleanup.yaml" 2>&1)
+        echo "$docker_cleanup_output"
+        if [[ $? -ne 0 ]]; then
+            echo "Docker cleanup failed before $playbook"
+            failures+=("$playbook (docker cleanup)")
+        fi
         
         # Change to the directory
         cd "$ROOT_DIR/$dir" || { 
@@ -39,9 +49,10 @@ failures=()
             continue 
         }
         
-        # Run the main Ansible playbook
+        # Run the main Ansible playbook and capture output
         echo "Running playbook $playbook in $dir"
-        ansible-playbook "$playbook"
+        playbook_output=$(ansible-playbook "$playbook" 2>&1)
+        echo "$playbook_output"
         
         # Check if the playbook ran successfully
         if [[ $? -ne 0 ]]; then
