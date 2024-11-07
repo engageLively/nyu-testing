@@ -16,16 +16,21 @@ declare -A playbooks=(
     ["raw-posix"]="ansible-raw-posix.yaml"
 )
 
-# Track failures
 failures=()
 
-# Start logging with tee to capture output to both screen and log file
 {
     echo "Starting test run at $(date)"
     
-    # Loop through each directory and run the playbook
+    # Run docker-cleanup.yaml playbook before any other tests
+    echo "Running docker cleanup playbook (initial)"
+    ansible-playbook "$ROOT_DIR/docker-cleanup.yaml"
+    
     for dir in "${!playbooks[@]}"; do
         playbook="${playbooks[$dir]}"
+        
+        # Run docker-cleanup.yaml before each individual playbook
+        echo "Running docker cleanup playbook before $playbook"
+        ansible-playbook "$ROOT_DIR/docker-cleanup.yaml"
         
         # Change to the directory
         cd "$ROOT_DIR/$dir" || { 
@@ -34,7 +39,7 @@ failures=()
             continue 
         }
         
-        # Run the Ansible playbook
+        # Run the main Ansible playbook
         echo "Running playbook $playbook in $dir"
         ansible-playbook "$playbook"
         
