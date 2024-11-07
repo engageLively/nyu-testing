@@ -52,11 +52,7 @@
       when: run_initial_setup  # This will execute the block only if run_initial_setup is true
 
     - name: Run full workflow
-      loop: "{{ range(1, 4) | list }}"  # Adjust the range to set the number of iterations
-      loop_control:
-        label: "Full workflow iteration {{ item }}"
-
-      tasks:
+      block:
         - name: Generate unique timestamp for this iteration
           command: date +%Y%m%d%H%M%S
           register: unique_timestamp
@@ -103,3 +99,6 @@
         - name: Pause for 30 seconds before the next iteration
           pause:
             seconds: 30
+      loop: "{{ range(1, 4) | list }}"  # Adjust the range to set the number of iterations
+      loop_control:
+        label: "Full workflow iteration {{ item }}"
