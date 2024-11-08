@@ -2,7 +2,7 @@
   strategy: free
   become: true
   vars:
-    run_initial_setup: true  # Toggle this to false to skip the initial setup block
+    run_initial_setup: false  # Toggle this to false to skip the initial setup block
 
   tasks:
     - block:
@@ -73,8 +73,8 @@
             dest: "/home/mhemmings/output/{{ ansible_hostname }}_{{ unique_timestamp.stdout }}_build.log"
 
         - name: Fetch logs from lind-pypgbench container
-          shell: docker logs lind-pypgbench > /home/mhemmings/output/container_logs.log
-          async: 10
+          shell: docker logs -f lind-pypgbench > /home/mhemmings/output/container_logs.log
+          async: 3600
           poll: 0
 
         - name: Wait for log file to contain 'DONE' or 'stack backtrace'
