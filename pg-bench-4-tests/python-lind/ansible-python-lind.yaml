@@ -78,8 +78,7 @@
             dest: "/home/mhemmings/output/{{ ansible_hostname }}_{{ unique_timestamp.stdout }}_build.log"
 
         - name: Fetch logs from lind-pypgbench container
-          command: docker logs lind-pypgbench > /home/mhemmings/output/container_logs.log
-          delegate_to: localhost
+          command: docker logs lind-pypgbench > /home/mhemmings/output/container_logs.log          
           async: 10
           poll: 0
 
@@ -88,8 +87,7 @@
             path: /home/mhemmings/output/container_logs.log
             search_regex: "DONE|stack backtrace:"
             delay: 10          # Check every 10 seconds
-            timeout: 3600      # Wait up to 1 hour
-          delegate_to: localhost
+            timeout: 3600      # Wait up to 1 hour          
           register: wait_for_result
           retries: 5          # Retry up to 5 times if necessary
           until: wait_for_result is succeeded
