@@ -77,20 +77,23 @@
             content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
             dest: "/home/mhemmings/output/{{ ansible_hostname }}_{{ unique_timestamp.stdout }}_build.log"
 
-        - name: Check if 'DONE' or 'stack backtrace' is in the Docker logs
-          wait_for:
-            path: /home/mhemmings/output/container_logs.log  # Temporary log file to monitor
-            search_regex: "DONE|stack backtrace:"
-            delay: 10          # Check every 10 seconds (adjust as needed)
-            timeout: 3600      # Wait up to 1 hour
-          delegate_to: localhost
-          register: wait_for_result
-
         - name: Fetch logs from lind-pypgbench container
           command: docker logs lind-pypgbench > /home/mhemmings/output/container_logs.log
           delegate_to: localhost
           async: 10
           poll: 0
+
+        - name: Wait for log file to contain 'DONE' or 'stack backtrace'
+          wait_for:
+            path: /home/mhemmings/output/container_logs.log
+            search_regex: "DONE|stack backtrace:"
+            delay: 10          # Check every 10 seconds
+            timeout: 3600      # Wait up to 1 hour
+          delegate_to: localhost
+          register: wait_for_result
+          retries: 5          # Retry up to 5 times if necessary
+          until: wait_for_result is succeeded
+
 
         - name: Log all output to run.log
           copy:
