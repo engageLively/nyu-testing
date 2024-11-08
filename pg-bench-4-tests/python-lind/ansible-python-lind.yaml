@@ -66,19 +66,14 @@
         - name: Start Docker Compose asynchronously
           shell: "docker-compose -f /tmp/python-lind/docker-compose.yaml --project-directory /tmp/python-lind up -d --build"          
           register: docker_build
-
-        - name: Wait for 2.5 minutes
-          shell: sleep 150
-          async: 0
-          poll: 0
-
+        
         - name: Write docker build output to local file
           copy:
             content: "{{ docker_build.stdout }}\n{{ docker_build.stderr }}"
             dest: "/home/mhemmings/output/{{ ansible_hostname }}_{{ unique_timestamp.stdout }}_build.log"
 
         - name: Fetch logs from lind-pypgbench container
-          command: docker logs lind-pypgbench > /home/mhemmings/output/container_logs.log          
+          shell: docker logs lind-pypgbench > /home/mhemmings/output/container_logs.log
           async: 10
           poll: 0
 
