@@ -40,14 +40,14 @@ for i in $(seq 1 "$iterations"); do
         playbook_log="$log_folder/${dir}_playbook_run_$timestamp.log"
 
         # Run docker-cleanup.yaml before each individual playbook
-        echo "Running docker cleanup playbook before $playbook (logs in $cleanup_log)"
-        ( 
-            ansible-playbook "$ROOT_DIR/docker-cleanup.yaml" > "$cleanup_log" 2>&1
-            if [[ $? -ne 0 ]]; then
-                echo "Docker cleanup failed for $playbook, check $cleanup_log"
-                failures+=("$playbook (docker cleanup)")
-            fi
-        ) &
+        #echo "Running docker cleanup playbook before $playbook (logs in $cleanup_log)"
+        #( 
+        #    ansible-playbook "$ROOT_DIR/docker-cleanup.yaml" > "$cleanup_log" 2>&1
+        #    if [[ $? -ne 0 ]]; then
+        #        echo "Docker cleanup failed for $playbook, check $cleanup_log"
+        #        failures+=("$playbook (docker cleanup)")
+        #    fi
+        #) &
 
         # Run each playbook in the background and log output to its own file
         echo "Running playbook $playbook in $dir (logs in $playbook_log)"
