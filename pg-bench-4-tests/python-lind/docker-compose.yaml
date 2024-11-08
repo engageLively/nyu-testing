@@ -10,7 +10,7 @@ services:
     ports:
       - "8083:80"
     command: >
-        bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling && lind /bin/bash lind_pgbench.sh > /tmp/data/lind_pypgbench_data.json "
+        bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling && lind /bin/bash lind_pgbench.sh | tee /tmp/data/lind_pypgbench_data.json "
     networks:
       - lind_network
     volumes: #Verify that this folder is empty, else the test may need adjusting
