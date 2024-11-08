@@ -92,11 +92,11 @@
           copy:
             content: |
               "Wait for result status: {{ wait_for_result.state }}"
-              "Stdout: {{ wait_for_result.stdout }}"
-              "Stderr: {{ wait_for_result.stderr }}"
+              "Changed: {{ wait_for_result.changed }}"
             dest: /home/mhemmings/output/run.log
             append: no
-            mode: '0644'        
+            mode: '0644'
+       
 
         - name: Wait for 2.5 minutes
           shell: sleep 150
