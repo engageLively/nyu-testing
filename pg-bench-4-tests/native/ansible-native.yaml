@@ -1,4 +1,4 @@
-- hosts: a1,b1
+- hosts: a2,b2
   strategy: free
   become: true
   vars:
