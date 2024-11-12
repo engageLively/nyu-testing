@@ -76,7 +76,7 @@
           shell: sleep 150
           async: 0
           poll: 0
-        
+
         - name: Create tar.gz archive of wrk output files
           archive:
             path: "/home/mhemmings/output/*"

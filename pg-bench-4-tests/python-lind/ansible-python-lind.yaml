@@ -79,7 +79,7 @@
 
         - name: Wait for log file to contain 'DONE' or 'stack backtrace'
           wait_for:
-            path: /home/mhemmings/output/container_logs.log
+            path: /home/mhemmings/output/overall_run.log
             search_regex: "DONE|stack backtrace:"
             delay: 10          # Check every 10 seconds
             timeout: 3600      # Wait up to 1 hour          

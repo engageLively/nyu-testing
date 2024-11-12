@@ -1,6 +1,6 @@
 services:
   lind_lamp_mixed:
-    image:  securesystemslab/lind_ubuntu:lind_pypgbench
+    image: securesystemslab/lind_ubuntu:lind_pypgbench
     container_name: lind-pypgbench
     user: lind
     privileged: true
@@ -10,10 +10,12 @@ services:
     ports:
       - "8083:80"
     command: >
-        bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling && lind /bin/bash lind_pgbench.sh | tee /tmp/data/lind_pypgbench_data.json "
+      bash -c "cd /home/lind/lind_project/tests/lamp_stack/profiling && \
+      lind /bin/bash lind_pgbench.sh > >(tee /tmp/data/lind_pypgbench_data.json /tmp/data/overall_run.log) \
+      2> >(tee /tmp/data/errors.log >> /tmp/data/overall_run.log)"
     networks:
       - lind_network
-    volumes: #Verify that this folder is empty, else the test may need adjusting
+    volumes:
       - /home/mhemmings/output:/tmp/data
 
 networks:
